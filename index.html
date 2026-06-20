@@ -225,10 +225,13 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
       <div class="chart-card">
         <div class="chart-title">등급별 현황 (욕창 제외)</div>
         <canvas id="gradeBar" height="200"></canvas>
-        <!-- 등급별 표 -->
-        <div class="grade-table-wrap">
-          <table class="grade-table" id="gradeTable"></table>
-        </div>
+      </div>
+    </div>
+    <!-- 등급별 표 — 그래프 아래 좌우 2열 -->
+    <div class="grade-table-wrap">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <table class="grade-table" id="gradeTableLeft"></table>
+        <table class="grade-table" id="gradeTableRight"></table>
       </div>
     </div>
     <div id="compareSection" style="display:none;">
@@ -630,33 +633,38 @@ function generate(){
     }
   });
 
-  // ── 등급별 표 ──
+  // ── 등급별 표 — 좌우 2열로 분리 ──
   const gradeCols=['등급0','등급1','등급2','등급3+','합계'];
-  let tableHtml=`<thead><tr><th>유형</th>${gradeCols.map(g=>`<th>${g}</th>`).join('')}</tr></thead><tbody>`;
+  const theadHtml=`<thead><tr><th>유형</th>${gradeCols.map(g=>`<th>${g}</th>`).join('')}</tr></thead>`;
   let totals={0:0,1:0,2:0,3:0,sum:0};
+  const rowsHtml=[];
   filteredCats.forEach(c=>{
     const row=gradeMap[c];
     const sum=[0,1,2,3].reduce((s,g)=>s+(row[g]||0),0);
     [0,1,2,3].forEach(g=>totals[g]+=(row[g]||0));
     totals.sum+=sum;
-    tableHtml+=`<tr>
+    rowsHtml.push(`<tr>
       <td>${c}</td>
       <td class="g0">${row[0]||'-'}</td>
       <td class="g1">${row[1]||'-'}</td>
       <td class="g2">${row[2]||'-'}</td>
       <td class="g3">${row[3]||'-'}</td>
       <td><strong>${sum}</strong></td>
-    </tr>`;
+    </tr>`);
   });
-  tableHtml+=`<tr>
+  const totalRow=`<tr>
     <td>합계</td>
     <td class="g0"><strong>${totals[0]}</strong></td>
     <td class="g1"><strong>${totals[1]}</strong></td>
     <td class="g2"><strong>${totals[2]}</strong></td>
     <td class="g3"><strong>${totals[3]}</strong></td>
     <td><strong>${totals.sum}</strong></td>
-  </tr></tbody>`;
-  document.getElementById('gradeTable').innerHTML=tableHtml;
+  </tr>`;
+  const half=Math.ceil(rowsHtml.length/2);
+  const leftRows=rowsHtml.slice(0,half);
+  const rightRows=rowsHtml.slice(half);
+  document.getElementById('gradeTableLeft').innerHTML=theadHtml+`<tbody>${leftRows.join('')}</tbody>`;
+  document.getElementById('gradeTableRight').innerHTML=theadHtml+`<tbody>${rightRows.join('')}${totalRow}</tbody>`;
 
   // 비교 차트
   if(prevTotal||prevYearTotal){
