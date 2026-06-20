@@ -123,15 +123,25 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
 
 @media print{
   .toolbar,.input-wrap,.no-print,.edit-hint,.attach-add-btn{display:none!important;}
-  .report-body{max-width:100%;padding:4px 10px;}
-  body{background:#fff;}
+  .report-body{max-width:100%;padding:2px 8px;}
+  body{background:#fff;font-size:11px;}
   .rpt-footer{display:none!important;}
-  .section{margin-bottom:10px;padding:10px 14px;page-break-inside:avoid;}
+  .section{margin-bottom:8px;padding:8px 12px;page-break-inside:avoid;}
   .chart-card canvas{display:none!important;}
-  .pre-print-img{display:block!important;width:100%;height:auto;max-height:220px;object-fit:contain;}
+  .pre-print-img{display:block!important;width:100%;height:auto;max-height:180px;object-fit:contain;}
   .section-page-break{page-break-before:always;}
-  .kpi-value{font-size:18px!important;}
-  .grade-table-wrap{margin-top:8px;}
+  .kpi-value{font-size:16px!important;}
+  .kpi{padding:8px 10px!important;}
+  .grade-table-wrap{margin-top:6px;}
+  .rpt-title-box{padding:14px 18px;margin-bottom:8px;}
+  .rpt-main-title{font-size:16px!important;}
+  .section-header{margin-bottom:8px;padding-bottom:6px;}
+  .chart-grid-2{gap:8px;margin-bottom:8px;}
+  .chart-grid-3{gap:8px;margin-bottom:8px;}
+  .kpi-row{gap:6px;margin-bottom:10px;}
+  .analysis-box{padding:8px 12px;font-size:11px;line-height:1.7;}
+  .info-text{font-size:11px;line-height:1.7;}
+  .compare-panel{display:none!important;}
 }
 </style>
 </head>
@@ -200,14 +210,10 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   </div>
 
   <div class="section">
-    <div class="section-header"><span class="section-badge">목적 및 근거</span></div>
-    <div class="info-text">
+    <div class="info-text" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--gray-100);">
       <strong>목적</strong> — 환자안전사고 발생 현황을 체계적으로 파악하고 원인을 분석하여 재발을 예방하며, 개선활동을 통해 의료기관 차원의 환자안전관리 수준을 향상시키기 위함.<br>
       <strong>근거</strong> — 1. 의료법 제58조(의료기관인증평가 기준 7.3)&nbsp;&nbsp;2. 환자안전법(시행규정 제9조 제3항)&nbsp;&nbsp;3. QPS실 사업 계획
     </div>
-  </div>
-
-  <div class="section">
     <div class="section-header"><span class="section-badge">환자안전사고 분석</span> 분기 보고 현황</div>
     <div class="kpi-row kpi-row-5" id="kpiRow"></div>
     <div class="chart-grid-2">
@@ -420,11 +426,33 @@ const dataLabelPlugin={
   }
 };
 
-// ── 도넛/파이: 레이블에 건수+% ──
+// ── 도넛/파이: 중앙에 총 건수, 범례에 건수+% ──
+const donutCenterPlugin={
+  id:'donutCenter',
+  afterDraw(chart){
+    if(chart.config.type!=='doughnut'&&chart.config.type!=='pie')return;
+    const{ctx,chartArea:{top,bottom,left,right}}=chart;
+    if(!chartArea)return;
+    const cx=(left+right)/2, cy=(top+bottom)/2;
+    const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
+    ctx.save();
+    ctx.font='bold 22px Apple SD Gothic Neo,맑은 고딕,sans-serif';
+    ctx.fillStyle='#1a3a5c';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(total+'건',cx,cy-6);
+    ctx.font='11px Apple SD Gothic Neo,맑은 고딕,sans-serif';
+    ctx.fillStyle='#64748b';
+    ctx.fillText('합계',cx,cy+14);
+    ctx.restore();
+  }
+};
+
 function makePieOpts(labels,data){
   const total=data.reduce((s,v)=>s+(v||0),0);
   return {
     responsive:true,maintainAspectRatio:true,
+    cutout:'55%',
     plugins:{
       legend:{display:true,position:'bottom',
         labels:{font:{size:10},boxWidth:12,padding:8,
@@ -450,7 +478,7 @@ function mc(id,type,labels,data,opts={}){
   const el=document.getElementById(id);if(!el)return;
   const isDoughnut=type==='doughnut'||type==='pie';
   if(isDoughnut){
-    cInsts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},options:makePieOpts(labels,data)});
+    cInsts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},plugins:[donutCenterPlugin],options:makePieOpts(labels,data)});
   } else {
     const dsTotal=data.reduce((s,v)=>s+(v||0),0);
     cInsts[id]=new Chart(el,{
