@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>환자안전사고 분기보고서 — 좋은삼선병원</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#1a3a5c;--blue:#1a5fa8;--green:#0e6b4f;--red:#b03030;--orange:#d97706;
+  --teal:#0891b2;--purple:#7c3aed;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;
+  --gray-400:#94a3b8;--gray-600:#475569;--gray-900:#0f172a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px;background:#eef2f7;color:var(--gray-900);}
+
+.toolbar{position:sticky;top:0;z-index:100;background:var(--navy);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.tb-title{font-size:13px;font-weight:700;flex:1;}
+.btn{padding:6px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-ghost{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.btn-ghost:hover{background:rgba(255,255,255,0.25);}
+
+.input-wrap{max-width:860px;margin:30px auto;padding:0 16px;}
+.step-card{background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:20px 24px;margin-bottom:14px;}
+.step-label{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.06em;margin-bottom:12px;}
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.upload-area{border:2px dashed var(--gray-200);border-radius:8px;padding:20px 16px;text-align:center;cursor:pointer;transition:.15s;background:var(--gray-50);display:block;}
+.upload-area:hover{border-color:var(--blue);background:#eff6ff;}
+.upload-area.loaded{border-color:var(--green);background:#f0fdf4;}
+.upload-icon{font-size:26px;margin-bottom:6px;}
+.upload-text{font-size:13px;font-weight:600;}
+.upload-sub{font-size:11px;color:var(--gray-400);}
+.meta-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.meta-field label{font-size:11px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:4px;}
+.meta-field input,.meta-field select{width:100%;padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:13px;font-family:inherit;}
+.iz-actions{display:flex;align-items:center;gap:10px;margin-top:14px;}
+
+.report-body{max-width:1060px;margin:0 auto;padding:16px;display:none;}
+.report-body.show{display:block;}
+
+.rpt-title-box{background:linear-gradient(135deg,var(--navy) 0%,#2563a8 100%);color:#fff;border-radius:10px;padding:22px 28px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.rpt-main-title{font-size:20px;font-weight:800;}
+.rpt-meta{font-size:11px;opacity:.75;margin-top:4px;}
+.rpt-overview{text-align:right;font-size:11px;opacity:.8;line-height:1.8;}
+
+.section{background:#fff;border-radius:10px;border:1px solid var(--gray-200);padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.section-header{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--gray-100);display:flex;align-items:center;gap:8px;}
+.section-badge{background:var(--navy);color:#fff;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:700;}
+.section-badge.fall{background:#b45309;}
+.section-badge.med{background:#6d28d9;}
+.section-badge.wound{background:#0f766e;}
+
+.kpi-row{display:grid;gap:10px;margin-bottom:16px;}
+.kpi-row-5{grid-template-columns:repeat(5,1fr);}
+.kpi-row-4{grid-template-columns:repeat(4,1fr);}
+.kpi-row-3{grid-template-columns:repeat(3,1fr);}
+.kpi{border-radius:8px;padding:14px 16px;text-align:center;border:1px solid rgba(255,255,255,0.3);}
+.kpi-label{font-size:10px;font-weight:600;opacity:.85;margin-bottom:4px;}
+.kpi-value{font-size:26px;font-weight:800;line-height:1;}
+.kpi-unit{font-size:11px;opacity:.7;margin-top:2px;}
+.kpi.total{background:var(--navy);color:#fff;}
+.kpi.fall{background:#b45309;color:#fff;}
+.kpi.med{background:#6d28d9;color:#fff;}
+.kpi.etc{background:#0891b2;color:#fff;}
+.kpi.wound{background:#0f766e;color:#fff;}
+.kpi.near{background:#374151;color:#fff;}
+.kpi.light{background:var(--gray-50);color:var(--navy);border:1.5px solid var(--gray-200);}
+
+.chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.chart-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.chart-card{background:var(--gray-50);border-radius:8px;padding:14px;border:1px solid var(--gray-100);}
+.chart-card.full{background:var(--gray-50);border-radius:8px;padding:14px;border:1px solid var(--gray-100);margin-bottom:14px;}
+.chart-title{font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:10px;text-align:center;}
+.chart-card canvas{display:block;width:100%!important;}
+
+.analysis-box{background:#f0f5fc;border-left:4px solid var(--blue);border-radius:4px;padding:12px 16px;font-size:12px;line-height:1.9;margin-top:10px;outline:none;min-height:50px;}
+.analysis-box:focus{background:#e8effc;border-left-color:var(--navy);}
+.analysis-box ul{padding-left:18px;}
+.analysis-box li{margin-bottom:3px;}
+.edit-hint{font-size:10px;color:var(--gray-400);margin-top:4px;display:flex;align-items:center;gap:4px;}
+
+.info-text{font-size:12px;line-height:2;color:var(--gray-700);}
+
+.attach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;}
+.attach-item{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:4/3;background:var(--gray-100);}
+.attach-item img{width:100%;height:100%;object-fit:cover;}
+.attach-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:12px;}
+.attach-add-btn{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 16px;background:var(--gray-100);border:1.5px dashed var(--gray-300);border-radius:6px;cursor:pointer;font-size:12px;color:var(--gray-600);transition:.15s;}
+.attach-add-btn:hover{background:#eff6ff;border-color:var(--blue);color:var(--blue);}
+
+.rpt-footer{background:var(--navy);color:rgba(255,255,255,.7);font-size:11px;padding:10px 20px;display:flex;justify-content:space-between;margin-top:20px;}
+
+/* 비교 차트 카드 */
+.compare-card{background:#fff5e6;border:1px solid #fed7aa;border-radius:8px;padding:14px;margin-bottom:14px;}
+.compare-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:10px;text-align:center;}
+
+@media print{
+  .toolbar,.input-wrap,.no-print,.edit-hint,.attach-add-btn{display:none!important;}
+  .report-body{max-width:100%;padding:4px 10px;}
+  body{background:#fff;}
+  .rpt-footer{display:none!important;}
+  .section{margin-bottom:10px;padding:10px 14px;page-break-inside:avoid;}
+  .chart-card canvas{display:none!important;}
+  .pre-print-img{display:block!important;width:100%;height:auto;max-height:200px;object-fit:contain;}
+  .section-page-break{page-break-before:always;}
+  .kpi-value{font-size:18px!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar no-print">
+  <div class="tb-title">🏥 환자안전사고 분기보고서 — 좋은삼선병원</div>
+  <span id="autoSaveStatus" style="font-size:11px;opacity:.6;"></span>
+  <button class="btn btn-ghost" id="loadBtn" onclick="loadDraft()" style="display:none;">📂 이전 작업 불러오기</button>
+  <button class="btn btn-ghost" onclick="saveDraft()">💾 임시저장</button>
+  <button class="btn btn-ghost" onclick="printReport()">🖨 인쇄/PDF</button>
+  <button class="btn btn-ghost" onclick="resetReport()">↺ 초기화</button>
+</div>
+
+<div class="input-wrap" id="inputWrap">
+  <div class="step-card">
+    <div class="step-label">STEP 1 · 파일 업로드</div>
+    <div class="upload-row">
+      <label class="upload-area" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'raw')">
+        <input type="file" id="rawFile" accept="text/html,*/*" style="display:none" onchange="handleFile(this.files[0],'raw')">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text" id="rawText">원자료.html</div>
+        <div class="upload-sub">환자안전사고 원자료</div>
+      </label>
+      <label class="upload-area" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'wound')">
+        <input type="file" id="woundFile" accept="text/html,*/*" style="display:none" onchange="handleFile(this.files[0],'wound')">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text" id="woundText">욕창원자료.html</div>
+        <div class="upload-sub">욕창 원자료</div>
+      </label>
+    </div>
+  </div>
+  <div class="step-card" id="step2" style="display:none;">
+    <div class="step-label">STEP 2 · 분기 및 기본정보</div>
+    <div class="meta-row">
+      <div class="meta-field"><label>분기</label>
+        <select id="selQuarter" onchange="onQSelect()"><option value="">— 선택 —</option></select></div>
+      <div class="meta-field"><label>전분기 건수(낙상+투약+기타)</label><input type="number" id="prevTotal" placeholder="예) 175"></div>
+      <div class="meta-field"><label>전년도 동분기 건수</label><input type="number" id="prevYearTotal" placeholder="예) 85"></div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-field"><label>근접오류 건수</label><input type="number" id="nearMiss" placeholder="예) 67"></div>
+      <div class="meta-field"><label>전분기 근접오류</label><input type="number" id="prevNearMiss" placeholder="예) 93"></div>
+      <div class="meta-field"><label>전년도 동분기 근접오류</label><input type="number" id="prevYrNearMiss" placeholder="예) 30"></div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-field"><label>작성자</label><input type="text" id="metaAuthor" placeholder="예) 기규정"></div>
+      <div class="meta-field"><label>보고기간</label><input type="text" id="metaPeriod" placeholder="2026년 1월 1일 ~ 3월 31일"></div>
+      <div class="meta-field"><label>자료출처</label><input type="text" id="metaSource" value="자인컴 환자안전사고보고서"></div>
+    </div>
+    <div class="iz-actions">
+      <button class="btn btn-primary" id="genBtn" onclick="generate()" disabled>📊 보고서 생성</button>
+      <span id="fileStatus" style="font-size:12px;color:var(--gray-400);margin-left:8px;"></span>
+    </div>
+  </div>
+</div>
+
+<div class="report-body" id="reportBody">
+
+  <div class="rpt-title-box">
+    <div>
+      <div class="rpt-main-title" id="rptTitle">1분기 환자안전사고 분석 및 관리</div>
+      <div class="rpt-meta" id="rptMeta">작성: QPS실</div>
+    </div>
+    <div class="rpt-overview" id="rptOverview"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="section-badge">목적 및 근거</span></div>
+    <div class="info-text">
+      <strong>목적</strong> — 환자안전사고 발생 현황을 체계적으로 파악하고 원인을 분석하여 재발을 예방하며, 개선활동을 통해 의료기관 차원의 환자안전관리 수준을 향상시키기 위함.<br>
+      <strong>근거</strong> — 1. 의료법 제58조(의료기관인증평가 기준 7.3)&nbsp;&nbsp;2. 환자안전법(시행규정 제9조 제3항)&nbsp;&nbsp;3. QPS실 사업 계획
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="section-badge">환자안전사고 분석</span> 분기 보고 현황</div>
+    <div class="kpi-row kpi-row-5" id="kpiRow"></div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">보고유형별 현황</div>
+        <canvas id="overallPie" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">등급별 현황 (욕창 제외)</div>
+        <canvas id="gradeBar" height="200"></canvas>
+      </div>
+    </div>
+    <!-- 전분기/전년도 비교 차트 -->
+    <div id="compareSection" style="display:none;">
+      <div class="compare-card">
+        <div class="compare-title">📊 전분기 / 전년도 동분기 비교 (낙상+투약+기타)</div>
+        <canvas id="compareBar" height="100"></canvas>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">종합 결과 분석</div>
+    <div class="analysis-box" id="overallAnalysis" contenteditable="true" spellcheck="false"></div>
+    <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
+  </div>
+
+  <div class="section section-page-break">
+    <div class="section-header"><span class="section-badge fall">낙상</span> 위해사고 발생 현황 및 관리</div>
+    <div class="kpi-row kpi-row-4" id="fallKpi"></div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">① 낙상 유형</div>
+        <canvas id="fallTypeChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">② 낙상 장소</div>
+        <canvas id="fallPlaceChart" height="200"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">③ 낙상 위험유형</div>
+        <canvas id="fallRiskChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">④ 연령별 분포</div>
+        <canvas id="fallAgeChart" height="200"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid-3">
+      <div class="chart-card">
+        <div class="chart-title">⑤ 고위험군 여부</div>
+        <canvas id="fallHRChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⑥ 시간대별</div>
+        <canvas id="fallTimeChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⑦ 낙상 후 손상</div>
+        <canvas id="fallInjChart" height="180"></canvas>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">낙상 위해사고 결과 분석</div>
+    <div class="analysis-box" id="fallAnalysis" contenteditable="true" spellcheck="false"></div>
+    <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="section-badge med">투약/기타</span> 위해사고 분석 및 관리</div>
+    <div class="kpi-row kpi-row-4" id="medKpi"></div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">투약 위험유형</div>
+        <canvas id="medTypeChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">기타 위험유형</div>
+        <canvas id="etcTypeChart" height="200"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">투약 위험요인</div>
+        <canvas id="medRiskChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">기타 위험요인</div>
+        <canvas id="etcRiskChart" height="200"></canvas>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">투약/기타 위해사고 결과 분석</div>
+    <div class="analysis-box" id="medAnalysis" contenteditable="true" spellcheck="false"></div>
+    <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><span class="section-badge">근접오류</span> 보고 현황 및 관리</div>
+    <div class="kpi-row kpi-row-3" id="nearKpi"></div>
+    <div id="nearCompareSection" style="display:none;">
+      <div class="compare-card">
+        <div class="compare-title">📊 근접오류 전분기 / 전년도 동분기 비교</div>
+        <canvas id="nearCompareBar" height="80"></canvas>
+      </div>
+    </div>
+    <div class="analysis-box" id="nearAnalysis" contenteditable="true" spellcheck="false"></div>
+    <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
+  </div>
+
+  <div class="section section-page-break">
+    <div class="section-header"><span class="section-badge wound">원내 욕창</span> 발생 분석 및 관리</div>
+    <div class="kpi-row kpi-row-4" id="woundKpi"></div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">① 욕창 단계</div>
+        <canvas id="woundStageChart" height="200"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">② 욕창 부위</div>
+        <canvas id="woundSiteChart" height="200"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid-3">
+      <div class="chart-card">
+        <div class="chart-title">③ 연령별 분포</div>
+        <canvas id="woundAgeChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">④ 욕창 위험평가</div>
+        <canvas id="woundRiskChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⑤ 진료과</div>
+        <canvas id="woundDeptChart" height="180"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid-3">
+      <div class="chart-card">
+        <div class="chart-title">⑥ 돌봄 체계</div>
+        <canvas id="woundCareChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⑦ 의식상태</div>
+        <canvas id="woundConsChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⑧ 식이상태</div>
+        <canvas id="woundDietChart" height="180"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title">⑨ 주요 위험요인</div>
+        <canvas id="woundFactorChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⑩ 신체활동</div>
+        <canvas id="woundActChart" height="180"></canvas>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">원내 욕창 발생 결과 분석</div>
+    <div class="analysis-box" id="woundAnalysis" contenteditable="true" spellcheck="false"></div>
+    <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
+  </div>
+
+  <div class="section section-page-break">
+    <div class="section-header"><span class="section-badge fall">[첨부1]</span> 낙상사고 개선 관리 이미지</div>
+    <div class="attach-grid" id="attach1Grid"></div>
+    <div class="attach-add-btn no-print" onclick="addPhoto(1)">📷 사진 추가 (여러 장 선택 가능)</div>
+  </div>
+  <div class="section">
+    <div class="section-header"><span class="section-badge med">[첨부2]</span> 투약/기타사고 개선 관리 이미지</div>
+    <div class="attach-grid" id="attach2Grid"></div>
+    <div class="attach-add-btn no-print" onclick="addPhoto(2)">📷 사진 추가 (여러 장 선택 가능)</div>
+  </div>
+  <div class="section">
+    <div class="section-header"><span class="section-badge wound">[첨부3]</span> 원내 욕창 발생 개선 관리 이미지</div>
+    <div class="attach-grid" id="attach3Grid"></div>
+    <div class="attach-add-btn no-print" onclick="addPhoto(3)">📷 사진 추가 (여러 장 선택 가능)</div>
+  </div>
+
+</div>
+
+<div class="rpt-footer no-print">
+  <span>좋은삼선병원 | 환자안전사고 분기보고서 | QPS실</span>
+  <span>환자안전법 제9조 제3항</span>
+</div>
+
+<script>
+const MONTHS_Q={'1':['01','02','03'],'2':['04','05','06'],'3':['07','08','09'],'4':['10','11','12']};
+const C={navy:'rgba(26,58,92,0.85)',blue:'rgba(26,95,168,0.85)',green:'rgba(14,107,79,0.85)',red:'rgba(176,48,48,0.85)',orange:'rgba(180,83,9,0.85)',teal:'rgba(8,145,178,0.85)',purple:'rgba(109,40,217,0.85)',gray:'rgba(100,116,139,0.7)'};
+const PALETTE=[C.navy,C.blue,C.green,C.orange,C.red,C.teal,C.purple,C.gray,'rgba(52,211,153,.8)','rgba(251,191,36,.8)'];
+let rawRows=[],woundRows=[],cInsts={};
+
+function dc(id){if(cInsts[id]){cInsts[id].destroy();delete cInsts[id];}}
+
+// ── 1. 그래프 위 건수+% 플러그인 ──
+const dataLabelPlugin={
+  id:'dataLabel',
+  afterDatasetsDraw(chart){
+    const{ctx}=chart;
+    const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
+    chart.data.datasets.forEach((ds,i)=>{
+      const meta=chart.getDatasetMeta(i);
+      if(meta.hidden||chart.config.type==='doughnut'||chart.config.type==='pie')return;
+      meta.data.forEach((bar,j)=>{
+        const v=ds.data[j];
+        if(!v)return;
+        const pct=total>0?(v/total*100).toFixed(1):'0';
+        ctx.save();
+        ctx.fillStyle='#374151';
+        ctx.font='bold 10px Apple SD Gothic Neo,맑은 고딕,sans-serif';
+        ctx.textAlign='center';
+        ctx.textBaseline='bottom';
+        ctx.fillText(`${v}건(${pct}%)`,bar.x,bar.y-2);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+// 도넛/파이 중앙 라벨 + 툴팁에 건수+% 표시
+function makePieOptions(labels,data){
+  const total=data.reduce((s,v)=>s+v,0);
+  return {
+    responsive:true,maintainAspectRatio:true,
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}},
+      tooltip:{callbacks:{label:ctx=>{
+        const v=ctx.raw;
+        const p=total>0?(v/total*100).toFixed(1):'0';
+        return ` ${ctx.label}: ${v}건 (${p}%)`;
+      }}}
+    }
+  };
+}
+
+function mc(id,type,labels,data,opts={}){
+  dc(id);
+  const el=document.getElementById(id);
+  if(!el)return;
+  const isDoughnut=type==='doughnut'||type==='pie';
+  const total=Array.isArray(data[0])?data[0].reduce((s,v)=>s+v,0):data.reduce((s,v)=>s+(v||0),0);
+
+  if(isDoughnut){
+    cInsts[id]=new Chart(el,{
+      type,
+      data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},
+      options:makePieOptions(labels,data)
+    });
+  } else {
+    const barTotal=data.reduce((s,v)=>s+(v||0),0);
+    cInsts[id]=new Chart(el,{
+      type,
+      data:{labels,datasets:[{data,backgroundColor:PALETTE[opts.ci||0],borderRadius:4,...(opts.ds||{})}]},
+      plugins:[dataLabelPlugin],
+      options:{
+        responsive:true,maintainAspectRatio:true,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:ctx=>{
+            const v=ctx.raw;
+            const p=barTotal>0?(v/barTotal*100).toFixed(1):'0';
+            return ` ${ctx.label}: ${v}건 (${p}%)`;
+          }}}
+        },
+        scales:{
+          y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
+          x:{ticks:{font:{size:10}}}
+        },
+        ...(opts.options||{})
+      }
+    });
+  }
+}
+
+function handleDrop(e,type){e.preventDefault();e.currentTarget.classList.remove('drag-over');handleFile(e.dataTransfer.files[0],type);}
+function handleFile(file,type){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const doc=new DOMParser().parseFromString(e.target.result,'text/html');
+    const rows=[];
+    doc.querySelectorAll('tr').forEach(tr=>{
+      const cells=[];tr.querySelectorAll('td,th').forEach(td=>cells.push(td.textContent.trim()));
+      if(cells.some(c=>c))rows.push(cells);
+    });
+    const cleaned=rows.map(r=>/^\d+$/.test(r[0])?r.slice(1):r);
+    if(type==='raw'){
+      rawRows=cleaned;
+      document.getElementById('rawText').textContent='✅ '+file.name;
+      document.getElementById('rawFile').closest('.upload-area').classList.add('loaded');
+      const months=[...new Set(cleaned.slice(2).map(r=>r[1]).filter(m=>m&&/^\d{4}-\d{2}$/.test(m)))].sort();
+      const sel=document.getElementById('selQuarter');
+      sel.innerHTML='<option value="">— 선택 —</option>';
+      const years=[...new Set(months.map(m=>m.split('-')[0]))];
+      years.forEach(y=>[1,2,3,4].forEach(q=>{
+        const qm=MONTHS_Q[q].map(m=>`${y}-${m}`);
+        if(qm.some(m=>months.includes(m))){
+          const o=document.createElement('option');
+          o.value=`${y}-${q}`;o.textContent=`${y}년 ${q}분기`;sel.appendChild(o);
+        }
+      }));
+      if(sel.options.length>1){sel.selectedIndex=1;onQSelect();}
+    } else {
+      woundRows=cleaned;
+      document.getElementById('woundText').textContent='✅ '+file.name;
+      document.getElementById('woundFile').closest('.upload-area').classList.add('loaded');
+    }
+    document.getElementById('step2').style.display='block';
+    checkReady();
+  };
+  r.readAsText(file,'utf-8');
+}
+function checkReady(){
+  const ok=rawRows.length>0&&woundRows.length>0;
+  document.getElementById('genBtn').disabled=!ok;
+  document.getElementById('fileStatus').textContent=ok?'✅ 두 파일 준비 완료!':rawRows.length>0?'욕창원자료를 업로드해주세요':'원자료를 먼저 업로드해주세요';
+}
+function onQSelect(){
+  const v=document.getElementById('selQuarter').value;
+  if(!v)return;
+  const[y,q]=v.split('-');
+  document.getElementById('metaPeriod').value=`${y}년 ${MONTHS_Q[q][0]}월 1일 ~ ${MONTHS_Q[q][2]}월 31일`;
+}
+
+function pct(n,t){return t>0?(n/t*100).toFixed(1)+'%':'0%';}
+function countBy(data,idx){const m={};data.forEach(r=>{const k=r[idx]||'기타';m[k]=(m[k]||0)+1;});return m;}
+function countMulti(data,idx){const m={};data.forEach(r=>{(r[idx]||'').split(/[,/]/).forEach(k=>{k=k.trim();if(k)m[k]=(m[k]||0)+1;});});return m;}
+function ageGroup(a){const n=parseInt(a)||0;if(n<7)return '7세미만';if(n<20)return '7~19세';if(n<30)return '20대';if(n<40)return '30대';if(n<50)return '40대';if(n<60)return '50대';if(n<70)return '60대';return '70세이상';}
+function timeSlot(t){if(!t)return '기타';const h=parseInt(t.split(':')[0]);if(h>=8&&h<16)return '7:31~15:30';if(h>=16&&h<23)return '15:31~22:30';return '22:31~07:30';}
+function sortedE(obj){return Object.entries(obj).sort((a,b)=>b[1]-a[1]);}
+function kpiHtml(items){return items.map(({cls,label,value,unit})=>`<div class="kpi ${cls}"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-unit">${unit||''}</div></div>`).join('');}
+
+function generate(){
+  const qVal=document.getElementById('selQuarter').value;
+  if(!qVal){alert('분기를 선택해주세요.');return;}
+  const[y,q]=qVal.split('-');
+  const qMonths=MONTHS_Q[q].map(m=>`${y}-${m}`);
+  const qLabel=`${y}년 ${q}분기`;
+  const author=document.getElementById('metaAuthor').value||'QPS실';
+  const period=document.getElementById('metaPeriod').value;
+  const source=document.getElementById('metaSource').value;
+  const prevTotal=parseInt(document.getElementById('prevTotal').value)||0;
+  const prevYearTotal=parseInt(document.getElementById('prevYearTotal').value)||0;
+  const nearMiss=parseInt(document.getElementById('nearMiss').value)||0;
+  const prevNearMiss=parseInt(document.getElementById('prevNearMiss').value)||0;
+  const prevYrNearMiss=parseInt(document.getElementById('prevYrNearMiss').value)||0;
+
+  const allData=rawRows.slice(2).filter(r=>r[1]&&qMonths.includes(r[1]));
+  const fallData=allData.filter(r=>r[0]==='낙상');
+  const fallHarm=fallData.filter(r=>r[7]!=='0');
+  const medData=allData.filter(r=>r[0]==='투약');
+  const medHarm=medData.filter(r=>r[7]!=='0');
+  const etcCats=['검사','그밖','발관','비품','수술','수혈','식이','이송','행정'];
+  const etcData=allData.filter(r=>etcCats.includes(r[0]));
+  const etcHarm=etcData.filter(r=>r[7]!=='0');
+  const wData=woundRows.slice(2).filter(r=>r[4]&&qMonths.includes(r[4]));
+  const totalExW=fallData.length+medData.length+etcData.length;
+  const totalAll=totalExW+wData.length;
+
+  document.getElementById('rptTitle').textContent=`${qLabel} 환자안전사고 분석 및 관리`;
+  document.getElementById('rptMeta').textContent=`작성: ${author} | QPS실`;
+  document.getElementById('rptOverview').innerHTML=`보고기간: ${period}<br>자료출처: ${source}<br>총 보고건수: <strong>${totalAll}건</strong>`;
+
+  // KPI
+  document.getElementById('kpiRow').innerHTML=kpiHtml([
+    {cls:'total',label:'총 보고건수',value:totalAll,unit:'건'},
+    {cls:'fall',label:'낙상',value:fallData.length,unit:'건 ('+pct(fallData.length,totalAll)+')'},
+    {cls:'med',label:'투약',value:medData.length,unit:'건 ('+pct(medData.length,totalAll)+')'},
+    {cls:'etc',label:'기타',value:etcData.length,unit:'건 ('+pct(etcData.length,totalAll)+')'},
+    {cls:'wound',label:'원내욕창',value:wData.length,unit:'건 ('+pct(wData.length,totalAll)+')'},
+  ]);
+
+  mc('overallPie','doughnut',['낙상','투약','기타','원내욕창'],[fallData.length,medData.length,etcData.length,wData.length]);
+
+  // 등급별 스택 막대
+  const cats=['낙상','투약','발관','검사','행정','그밖','수혈','이송','수술','비품','식이'];
+  const gradeMap={};
+  allData.forEach(r=>{
+    const k=r[0]||'기타';
+    if(!gradeMap[k])gradeMap[k]={0:0,1:0,2:0,3:0};
+    gradeMap[k][Math.min(parseInt(r[7])||0,3)]++;
+  });
+  const filteredCats=cats.filter(c=>gradeMap[c]);
+  dc('gradeBar');
+  cInsts['gradeBar']=new Chart(document.getElementById('gradeBar'),{
+    type:'bar',
+    data:{labels:filteredCats,datasets:[
+      {label:'등급0',data:filteredCats.map(c=>gradeMap[c]?.[0]||0),backgroundColor:'rgba(148,163,184,.7)',stack:'s'},
+      {label:'등급1',data:filteredCats.map(c=>gradeMap[c]?.[1]||0),backgroundColor:C.blue,stack:'s'},
+      {label:'등급2',data:filteredCats.map(c=>gradeMap[c]?.[2]||0),backgroundColor:C.orange,stack:'s'},
+      {label:'등급3+',data:filteredCats.map(c=>gradeMap[c]?.[3]||0),backgroundColor:C.red,stack:'s'},
+    ]},
+    options:{responsive:true,
+      scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10}}}},
+      plugins:{
+        legend:{position:'top',labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label:ctx=>{
+          const v=ctx.raw;
+          const colTotal=filteredCats.map((_,i)=>[0,1,2,3].reduce((s,g)=>s+(gradeMap[filteredCats[i]]?.[g]||0),0));
+          const t=colTotal[ctx.dataIndex]||1;
+          return ` ${ctx.dataset.label}: ${v}건 (${(v/t*100).toFixed(1)}%)`;
+        }}}
+      }
+    }
+  });
+
+  // ── 2. 전분기/전년도 비교 차트 ──
+  if(prevTotal||prevYearTotal){
+    document.getElementById('compareSection').style.display='block';
+    dc('compareBar');
+    const compareLabels=['전년도 동분기','전분기','현재 분기'];
+    const compareData=[prevYearTotal||null,prevTotal||null,totalExW];
+    const compareColors=['rgba(148,163,184,.7)','rgba(26,95,168,.7)','rgba(180,83,9,.9)'];
+    cInsts['compareBar']=new Chart(document.getElementById('compareBar'),{
+      type:'bar',
+      data:{
+        labels:compareLabels,
+        datasets:[{
+          data:compareData,
+          backgroundColor:compareColors,
+          borderRadius:6,
+          barThickness:60
+        }]
+      },
+      plugins:[{
+        id:'compareLabelPlugin',
+        afterDatasetsDraw(chart){
+          const{ctx}=chart;
+          chart.data.datasets[0].data.forEach((v,i)=>{
+            if(!v)return;
+            const bar=chart.getDatasetMeta(0).data[i];
+            ctx.save();
+            ctx.fillStyle='#1a3a5c';
+            ctx.font='bold 12px Apple SD Gothic Neo,sans-serif';
+            ctx.textAlign='center';
+            ctx.textBaseline='bottom';
+            ctx.fillText(`${v}건`,bar.x,bar.y-4);
+            ctx.restore();
+          });
+        }
+      }],
+      options:{
+        responsive:true,maintainAspectRatio:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}건`}}},
+        scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:12,weight:'bold'}}}}
+      }
+    });
+  } else {
+    document.getElementById('compareSection').style.display='none';
+  }
+
+  // ── 3. 종합 분석 문장 (자연스럽게) ──
+  let compareSentence='';
+  if(prevTotal&&prevYearTotal){
+    const diffPrev=totalExW-prevTotal;
+    const diffYear=totalExW-prevYearTotal;
+    compareSentence=`전분기(${prevTotal}건) 대비 <strong>${Math.abs(diffPrev)}건 ${diffPrev<0?'감소 ▼':'증가 ▲'}</strong>하였으며, 전년도 동분기(${prevYearTotal}건) 대비 <strong>${Math.abs(diffYear)}건 ${diffYear<0?'감소':'증가'}</strong>하였습니다.`;
+  } else if(prevTotal){
+    const diff=totalExW-prevTotal;
+    compareSentence=`전분기(${prevTotal}건) 대비 <strong>${Math.abs(diff)}건 ${diff<0?'감소 ▼':'증가 ▲'}</strong>하였습니다.`;
+  } else if(prevYearTotal){
+    const diff=totalExW-prevYearTotal;
+    compareSentence=`전년도 동분기(${prevYearTotal}건) 대비 <strong>${Math.abs(diff)}건 ${diff<0?'감소':'증가'}</strong>하였습니다.`;
+  }
+
+  document.getElementById('overallAnalysis').innerHTML=`<ul>
+    <li>${qLabel} 환자안전사고 보고는 총 <strong>${totalAll}건</strong>이었습니다.</li>
+    <li>낙상 <strong>${fallData.length}건(${pct(fallData.length,totalAll)})</strong>, 기타 ${etcData.length}건(${pct(etcData.length,totalAll)}), 원내욕창 ${wData.length}건(${pct(wData.length,totalAll)}), 투약 ${medData.length}건(${pct(medData.length,totalAll)}) 순이었습니다.</li>
+    <li>욕창 제외 사고(낙상+투약+기타) 총 <strong>${totalExW}건</strong>이 보고되었습니다.${compareSentence?' '+compareSentence:''}</li>
+  </ul>`;
+
+  // ── 낙상 ──
+  const fT=fallHarm.length;
+  const fGrade={1:0,2:0,3:0,4:0,5:0};fallHarm.forEach(r=>fGrade[parseInt(r[7])||1]++);
+  const fHR={Y:0,N:0};fallHarm.forEach(r=>fHR[r[15]]=(fHR[r[15]]||0)+1);
+  document.getElementById('fallKpi').innerHTML=kpiHtml([
+    {cls:'fall',label:'낙상 위해사고',value:fT,unit:'건'},
+    {cls:'light',label:'고위험군 비율',value:pct(fHR.Y||0,fT),unit:''},
+    {cls:'light',label:'70세 이상',value:pct(fallHarm.filter(r=>parseInt(r[4])>=70).length,fT),unit:''},
+    {cls:'light',label:'가장 많은 등급',value:'등급'+(Object.entries(fGrade).sort((a,b)=>b[1]-a[1])[0]?.[0]||1),unit:''},
+  ]);
+
+  const fType=countBy(fallHarm,14);
+  const fPlace=countBy(fallHarm,10);
+  const fRisk=countBy(fallHarm,8);
+  const fAge={};fallHarm.forEach(r=>{const g=ageGroup(r[4]);fAge[g]=(fAge[g]||0)+1;});
+  const ageOrder=['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'];
+  const fTime={'7:31~15:30':0,'15:31~22:30':0,'22:31~07:30':0};
+  fallHarm.forEach(r=>fTime[timeSlot(r[2])]=(fTime[timeSlot(r[2])]||0)+1);
+  const fInj=countMulti(fallHarm,11);
+
+  mc('fallTypeChart','doughnut',sortedE(fType).map(([k])=>k),sortedE(fType).map(([,v])=>v));
+  mc('fallPlaceChart','bar',sortedE(fPlace).map(([k])=>k),sortedE(fPlace).map(([,v])=>v),{ci:0});
+  mc('fallRiskChart','bar',sortedE(fRisk).map(([k])=>k),sortedE(fRisk).map(([,v])=>v),{ci:1});
+  mc('fallAgeChart','bar',ageOrder.filter(k=>fAge[k]),ageOrder.filter(k=>fAge[k]).map(k=>fAge[k]||0),{ci:2});
+  mc('fallHRChart','doughnut',['고위험군(Y)','일반(N)'],[fHR.Y||0,fHR.N||0]);
+  mc('fallTimeChart','bar',Object.keys(fTime),Object.values(fTime),{ci:3});
+  mc('fallInjChart','doughnut',sortedE(fInj).map(([k])=>k),sortedE(fInj).map(([,v])=>v));
+
+  const topPlace=sortedE(fPlace)[0]||['병실',0];
+  const topRisk=sortedE(fRisk)[0]||['행동특성낙상',0];
+  document.getElementById('fallAnalysis').innerHTML=`<ul>
+    <li>${qLabel} 낙상 위해사고는 총 <strong>${fT}건</strong> 발생하였습니다.</li>
+    <li>주요 발생 장소: <strong>${topPlace[0]}(${pct(topPlace[1],fT)})</strong>, 주요 원인: <strong>${topRisk[0]}(${pct(topRisk[1],fT)})</strong>.</li>
+    <li>낙상 고위험군 환자에서 <strong>${pct(fHR.Y||0,fT)}</strong> 발생, 70세 이상이 <strong>${pct(fallHarm.filter(r=>parseInt(r[4])>=70).length,fT)}</strong>를 차지하였습니다.</li>
+  </ul>`;
+
+  // ── 투약/기타 ──
+  const mT=medHarm.length,eT=etcHarm.length;
+  const mGrade={1:0,2:0,3:0};medHarm.forEach(r=>mGrade[Math.min(parseInt(r[7])||1,3)]++);
+  const eGrade={1:0,2:0,3:0};etcHarm.forEach(r=>eGrade[Math.min(parseInt(r[7])||1,3)]++);
+  document.getElementById('medKpi').innerHTML=kpiHtml([
+    {cls:'med',label:'투약 위해사고',value:mT,unit:'건'},
+    {cls:'etc',label:'기타 위해사고',value:eT,unit:'건'},
+    {cls:'light',label:'투약 등급1 비율',value:pct(mGrade[1],mT),unit:''},
+    {cls:'light',label:'기타 등급1 비율',value:pct(eGrade[1],eT),unit:''},
+  ]);
+  const mType=countBy(medHarm,8),mRisk=countBy(medHarm,9);
+  const eType=countBy(etcHarm,8),eRisk=countBy(etcHarm,9);
+  mc('medTypeChart','doughnut',sortedE(mType).map(([k])=>k),sortedE(mType).map(([,v])=>v));
+  mc('etcTypeChart','doughnut',sortedE(eType).map(([k])=>k),sortedE(eType).map(([,v])=>v));
+  mc('medRiskChart','bar',sortedE(mRisk).map(([k])=>k),sortedE(mRisk).map(([,v])=>v),{ci:4});
+  mc('etcRiskChart','bar',sortedE(eRisk).map(([k])=>k),sortedE(eRisk).map(([,v])=>v),{ci:2});
+  const topEtc=sortedE(eType)[0]||['발관',0];
+  document.getElementById('medAnalysis').innerHTML=`<ul>
+    <li>투약 위해사고 <strong>${mT}건</strong>, 기타 위해사고 <strong>${eT}건</strong> 발생하였습니다.</li>
+    <li>기타 사고 가장 많은 유형: <strong>${topEtc[0]}(${pct(topEtc[1],eT)})</strong>.</li>
+  </ul>`;
+
+  // ── 근접오류 ──
+  document.getElementById('nearKpi').innerHTML=kpiHtml([
+    {cls:'near',label:'근접오류 보고',value:nearMiss,unit:'건'},
+    {cls:'light',label:'전분기',value:prevNearMiss||'-',unit:'건'},
+    {cls:'light',label:'전년도 동분기',value:prevYrNearMiss||'-',unit:'건'},
+  ]);
+
+  if(prevNearMiss||prevYrNearMiss){
+    document.getElementById('nearCompareSection').style.display='block';
+    dc('nearCompareBar');
+    cInsts['nearCompareBar']=new Chart(document.getElementById('nearCompareBar'),{
+      type:'bar',
+      data:{
+        labels:['전년도 동분기','전분기','현재 분기'],
+        datasets:[{data:[prevYrNearMiss||null,prevNearMiss||null,nearMiss],backgroundColor:['rgba(148,163,184,.7)','rgba(55,65,81,.7)','rgba(55,65,81,.9)'],borderRadius:6,barThickness:50}]
+      },
+      plugins:[{id:'nlp',afterDatasetsDraw(chart){const{ctx}=chart;chart.data.datasets[0].data.forEach((v,i)=>{if(!v)return;const bar=chart.getDatasetMeta(0).data[i];ctx.save();ctx.fillStyle='#1a3a5c';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(`${v}건`,bar.x,bar.y-4);ctx.restore();});}}],
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:12,weight:'bold'}}}}}
+    });
+  }
+
+  let nearCompare='';
+  if(prevNearMiss&&prevYrNearMiss){
+    const d1=nearMiss-prevNearMiss,d2=nearMiss-prevYrNearMiss;
+    nearCompare=`전분기(${prevNearMiss}건) 대비 <strong>${Math.abs(d1)}건 ${d1<0?'감소 ▼':'증가 ▲'}</strong>, 전년도 동분기(${prevYrNearMiss}건) 대비 <strong>${Math.abs(d2)}건 ${d2<0?'감소':'증가'}</strong>하였습니다.`;
+  } else if(prevNearMiss){
+    const d=nearMiss-prevNearMiss;
+    nearCompare=`전분기(${prevNearMiss}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소 ▼':'증가 ▲'}</strong>하였습니다.`;
+  } else if(prevYrNearMiss){
+    const d=nearMiss-prevYrNearMiss;
+    nearCompare=`전년도 동분기(${prevYrNearMiss}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소':'증가'}</strong>하였습니다.`;
+  }
+  document.getElementById('nearAnalysis').innerHTML=`<ul>
+    <li>${qLabel} 근접오류 보고는 총 <strong>${nearMiss}건</strong>이 접수되었습니다.</li>
+    ${nearCompare?`<li>${nearCompare}</li>`:''}
+  </ul>`;
+
+  // ── 욕창 ──
+  const wT=wData.length;
+  const wStage=countBy(wData,8);
+  const wSite=countMulti(wData,9);
+  const wAge={};wData.forEach(r=>{const g=ageGroup(r[3]);wAge[g]=(wAge[g]||0)+1;});
+  const wRisk=countBy(wData,13);
+  const wDept=countBy(wData,5);
+  const wCare=countBy(wData,7);
+  const wCons=countBy(wData,10);
+  const wDiet=countBy(wData,12);
+  const wFactor={...wCons};wData.forEach(r=>{const k=r[11]||'기타';wFactor[k]=(wFactor[k]||0)+1;});
+  const topStage=sortedE(wStage)[0]||['미분류',0];
+  const topSite=sortedE(wSite)[0]||['꼬리뼈',0];
+  document.getElementById('woundKpi').innerHTML=kpiHtml([
+    {cls:'wound',label:'원내욕창 발생',value:wT,unit:'건'},
+    {cls:'light',label:'주요 단계',value:topStage[0],unit:''},
+    {cls:'light',label:'주요 부위',value:topSite[0],unit:''},
+    {cls:'light',label:'70세 이상',value:pct(wData.filter(r=>parseInt(r[3])>=70).length,wT),unit:''},
+  ]);
+  mc('woundStageChart','doughnut',sortedE(wStage).map(([k])=>k),sortedE(wStage).map(([,v])=>v));
+  mc('woundSiteChart','bar',sortedE(wSite).map(([k])=>k),sortedE(wSite).map(([,v])=>v),{ci:3});
+  mc('woundAgeChart','bar',['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'].filter(k=>wAge[k]),['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'].filter(k=>wAge[k]).map(k=>wAge[k]),{ci:2});
+  mc('woundRiskChart','doughnut',sortedE(wRisk).map(([k])=>k),sortedE(wRisk).map(([,v])=>v));
+  mc('woundDeptChart','bar',sortedE(wDept).map(([k])=>k),sortedE(wDept).map(([,v])=>v),{ci:1});
+  mc('woundCareChart','doughnut',sortedE(wCare).map(([k])=>k),sortedE(wCare).map(([,v])=>v));
+  mc('woundConsChart','bar',sortedE(wCons).map(([k])=>k),sortedE(wCons).map(([,v])=>v),{ci:4});
+  const wAct=countBy(wData,11);
+  mc('woundDietChart','bar',sortedE(wDiet).map(([k])=>k),sortedE(wDiet).map(([,v])=>v),{ci:0});
+  mc('woundFactorChart','bar',sortedE(wFactor).slice(0,8).map(([k])=>k),sortedE(wFactor).slice(0,8).map(([,v])=>v),{ci:3});
+  mc('woundActChart','doughnut',sortedE(wAct).map(([k])=>k),sortedE(wAct).map(([,v])=>v));
+  document.getElementById('woundAnalysis').innerHTML=`<ul>
+    <li>${qLabel} 원내 욕창 발생은 총 <strong>${wT}건</strong>이었습니다.</li>
+    <li>주요 발생 부위: <strong>${topSite[0]}(${pct(sortedE(wSite)[0]?.[1]||0,Object.values(wSite).reduce((s,v)=>s+v,0))})</strong>, 주요 단계: <strong>${topStage[0]}(${pct(topStage[1],wT)})</strong>.</li>
+    <li>환자의 <strong>${pct(wData.filter(r=>parseInt(r[3])>=70).length,wT)}</strong>가 70세 이상이었습니다.</li>
+  </ul>`;
+
+  document.getElementById('inputWrap').style.display='none';
+  document.getElementById('reportBody').classList.add('show');
+  startAutoSave();
+}
+
+function addPhoto(num){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=e=>{
+    const grid=document.getElementById(`attach${num}Grid`);
+    [...e.target.files].forEach(f=>{
+      const r=new FileReader();
+      r.onload=ev=>{
+        const item=document.createElement('div');item.className='attach-item';
+        const img=document.createElement('img');img.src=ev.target.result;
+        const del=document.createElement('button');del.className='attach-del no-print';del.textContent='✕';del.onclick=()=>item.remove();
+        item.appendChild(img);item.appendChild(del);grid.appendChild(item);
+      };
+      r.readAsDataURL(f);
+    });
+  };
+  inp.click();
+}
+
+const DRAFT_KEY='safety_report_draft';
+let autoSaveTimer=null;
+function getEditableIds(){return['overallAnalysis','fallAnalysis','medAnalysis','nearAnalysis','woundAnalysis'];}
+function saveDraft(){
+  const data={savedAt:new Date().toLocaleString('ko-KR'),title:document.getElementById('rptTitle')?.textContent||'',analyses:{}};
+  getEditableIds().forEach(id=>{const el=document.getElementById(id);if(el)data.analyses[id]=el.innerHTML;});
+  try{localStorage.setItem(DRAFT_KEY,JSON.stringify(data));document.getElementById('autoSaveStatus').textContent=`💾 저장됨 ${data.savedAt}`;setTimeout(()=>document.getElementById('autoSaveStatus').textContent='',3000);}catch(e){}
+}
+function loadDraft(){
+  try{const raw=localStorage.getItem(DRAFT_KEY);if(!raw)return;const data=JSON.parse(raw);if(!confirm(`${data.savedAt}에 저장된 내용을 불러올까요?`))return;getEditableIds().forEach(id=>{const el=document.getElementById(id);if(el&&data.analyses[id])el.innerHTML=data.analyses[id];});document.getElementById('autoSaveStatus').textContent='✅ 불러오기 완료';setTimeout(()=>document.getElementById('autoSaveStatus').textContent='',3000);}catch(e){}
+}
+function checkDraft(){
+  try{const raw=localStorage.getItem(DRAFT_KEY);if(raw){const data=JSON.parse(raw);document.getElementById('loadBtn').style.display='inline-flex';document.getElementById('loadBtn').textContent=`📂 이전 작업 불러오기 (${data.savedAt})`;}}catch(e){}
+}
+function startAutoSave(){
+  if(autoSaveTimer)clearInterval(autoSaveTimer);
+  autoSaveTimer=setInterval(()=>{if(document.getElementById('reportBody').classList.contains('show'))saveDraft();},30000);
+  getEditableIds().forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',()=>{clearTimeout(window._saveDebounce);window._saveDebounce=setTimeout(saveDraft,3000);});});
+}
+window.addEventListener('load',checkDraft);
+
+function printReport(){
+  const ids=Object.keys(cInsts);
+  const reps=[];
+  ids.forEach(id=>{
+    const canvas=document.getElementById(id);
+    if(!canvas||canvas.width===0)return;
+    const img=document.createElement('img');
+    img.src=canvas.toDataURL('image/png',1);
+    img.className='pre-print-img';
+    img.style.cssText='display:none;width:100%;height:auto;';
+    canvas.parentNode.insertBefore(img,canvas);
+    canvas.style.display='none';
+    reps.push({canvas,img});
+  });
+  window.print();
+  setTimeout(()=>reps.forEach(({canvas,img})=>{img.remove();canvas.style.display='';}),1000);
+}
+
+function resetReport(){
+  if(!confirm('초기화하면 현재 작업이 삭제됩니다. 계속하시겠습니까?'))return;
+  if(confirm('임시저장 데이터도 삭제하시겠습니까?')){localStorage.removeItem(DRAFT_KEY);document.getElementById('loadBtn').style.display='none';}
+  rawRows=[];woundRows=[];
+  document.getElementById('rawText').textContent='원자료.html';
+  document.getElementById('woundText').textContent='욕창원자료.html';
+  document.querySelectorAll('.upload-area').forEach(el=>el.classList.remove('loaded'));
+  document.getElementById('step2').style.display='none';
+  document.getElementById('genBtn').disabled=true;
+  document.getElementById('reportBody').classList.remove('show');
+  document.getElementById('inputWrap').style.display='block';
+  Object.keys(cInsts).forEach(k=>{cInsts[k].destroy();delete cInsts[k];});
+  ['attach1Grid','attach2Grid','attach3Grid'].forEach(id=>document.getElementById(id).innerHTML='');
+}
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>e.preventDefault());
+</script>
+</body>
+</html>
