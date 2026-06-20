@@ -71,9 +71,20 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
 .chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .chart-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .chart-card{background:var(--gray-50);border-radius:8px;padding:14px;border:1px solid var(--gray-100);}
-.chart-card.full{background:var(--gray-50);border-radius:8px;padding:14px;border:1px solid var(--gray-100);margin-bottom:14px;}
 .chart-title{font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:10px;text-align:center;}
 .chart-card canvas{display:block;width:100%!important;}
+
+/* 등급별 표 */
+.grade-table-wrap{margin-top:12px;overflow-x:auto;}
+.grade-table{width:100%;border-collapse:collapse;font-size:11px;}
+.grade-table th{background:var(--navy);color:#fff;padding:7px 10px;text-align:center;font-weight:600;white-space:nowrap;}
+.grade-table td{padding:6px 10px;text-align:center;border-bottom:1px solid var(--gray-100);border-right:1px solid var(--gray-100);}
+.grade-table tr:last-child td{font-weight:700;background:#f1f5f9;}
+.grade-table td:first-child{text-align:left;font-weight:600;background:var(--gray-50);}
+.grade-table .g0{color:#64748b;}
+.grade-table .g1{color:var(--blue);font-weight:600;}
+.grade-table .g2{color:var(--orange);font-weight:600;}
+.grade-table .g3{color:var(--red);font-weight:700;}
 
 .analysis-box{background:#f0f5fc;border-left:4px solid var(--blue);border-radius:4px;padding:12px 16px;font-size:12px;line-height:1.9;margin-top:10px;outline:none;min-height:50px;}
 .analysis-box:focus{background:#e8effc;border-left-color:var(--navy);}
@@ -90,11 +101,25 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
 .attach-add-btn{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 16px;background:var(--gray-100);border:1.5px dashed var(--gray-300);border-radius:6px;cursor:pointer;font-size:12px;color:var(--gray-600);transition:.15s;}
 .attach-add-btn:hover{background:#eff6ff;border-color:var(--blue);color:var(--blue);}
 
-.rpt-footer{background:var(--navy);color:rgba(255,255,255,.7);font-size:11px;padding:10px 20px;display:flex;justify-content:space-between;margin-top:20px;}
-
-/* 비교 차트 카드 */
 .compare-card{background:#fff5e6;border:1px solid #fed7aa;border-radius:8px;padding:14px;margin-bottom:14px;}
 .compare-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:10px;text-align:center;}
+
+/* 비교 추가 버튼 & 패널 */
+.btn-compare{background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-left:auto;font-family:inherit;}
+.btn-compare:hover{background:rgba(255,255,255,0.35);}
+.compare-panel{background:#fffbf0;border:1px solid #fed7aa;border-radius:8px;padding:14px 16px;margin-bottom:14px;display:none;}
+.compare-panel.open{display:block;}
+.compare-panel-title{font-size:11px;font-weight:700;color:#92400e;margin-bottom:10px;}
+.compare-checks{display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;}
+.compare-check-item{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;}
+.compare-check-item input{cursor:pointer;}
+.compare-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.compare-input-field label{font-size:11px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:3px;}
+.compare-input-field input{width:100%;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:13px;font-family:inherit;}
+.btn-compare-apply{background:var(--orange);color:#fff;border:none;border-radius:6px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.btn-compare-apply:hover{background:#b45309;}
+
+.rpt-footer{background:var(--navy);color:rgba(255,255,255,.7);font-size:11px;padding:10px 20px;display:flex;justify-content:space-between;margin-top:20px;}
 
 @media print{
   .toolbar,.input-wrap,.no-print,.edit-hint,.attach-add-btn{display:none!important;}
@@ -103,9 +128,10 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   .rpt-footer{display:none!important;}
   .section{margin-bottom:10px;padding:10px 14px;page-break-inside:avoid;}
   .chart-card canvas{display:none!important;}
-  .pre-print-img{display:block!important;width:100%;height:auto;max-height:200px;object-fit:contain;}
+  .pre-print-img{display:block!important;width:100%;height:auto;max-height:220px;object-fit:contain;}
   .section-page-break{page-break-before:always;}
   .kpi-value{font-size:18px!important;}
+  .grade-table-wrap{margin-top:8px;}
 }
 </style>
 </head>
@@ -124,13 +150,13 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   <div class="step-card">
     <div class="step-label">STEP 1 · 파일 업로드</div>
     <div class="upload-row">
-      <label class="upload-area" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'raw')">
+      <label class="upload-area" ondragover="event.preventDefault()" ondrop="handleDrop(event,'raw')">
         <input type="file" id="rawFile" accept="text/html,*/*" style="display:none" onchange="handleFile(this.files[0],'raw')">
         <div class="upload-icon">📂</div>
         <div class="upload-text" id="rawText">원자료.html</div>
         <div class="upload-sub">환자안전사고 원자료</div>
       </label>
-      <label class="upload-area" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'wound')">
+      <label class="upload-area" ondragover="event.preventDefault()" ondrop="handleDrop(event,'wound')">
         <input type="file" id="woundFile" accept="text/html,*/*" style="display:none" onchange="handleFile(this.files[0],'wound')">
         <div class="upload-icon">📂</div>
         <div class="upload-text" id="woundText">욕창원자료.html</div>
@@ -192,9 +218,12 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
       <div class="chart-card">
         <div class="chart-title">등급별 현황 (욕창 제외)</div>
         <canvas id="gradeBar" height="200"></canvas>
+        <!-- 등급별 표 -->
+        <div class="grade-table-wrap">
+          <table class="grade-table" id="gradeTable"></table>
+        </div>
       </div>
     </div>
-    <!-- 전분기/전년도 비교 차트 -->
     <div id="compareSection" style="display:none;">
       <div class="compare-card">
         <div class="compare-title">📊 전분기 / 전년도 동분기 비교 (낙상+투약+기타)</div>
@@ -207,41 +236,35 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   </div>
 
   <div class="section section-page-break">
-    <div class="section-header"><span class="section-badge fall">낙상</span> 위해사고 발생 현황 및 관리</div>
+    <div class="section-header"><span class="section-badge fall">낙상</span> 위해사고 발생 현황 및 관리<button class="btn-compare no-print" onclick="toggleCompare('fall')">📊 비교 추가</button></div>
+    <div class="compare-panel" id="fallComparePanel">
+      <div class="compare-panel-title">낙상 비교 조건 설정</div>
+      <div class="compare-checks">
+        <label class="compare-check-item"><input type="checkbox" id="fallChkPrev"> 전분기 비교</label>
+        <label class="compare-check-item"><input type="checkbox" id="fallChkYear"> 전년도 동분기 비교</label>
+      </div>
+      <div class="compare-inputs">
+        <div class="compare-input-field"><label>전분기 낙상 건수</label><input type="number" id="fallPrev" placeholder="예) 58"></div>
+        <div class="compare-input-field"><label>전년도 동분기 낙상 건수</label><input type="number" id="fallYear" placeholder="예) 45"></div>
+      </div>
+      <button class="btn-compare-apply" onclick="applyCompare('fall')">적용</button>
+    </div>
+    <div id="fallCompareSectionInner" style="display:none;">
+      <div class="compare-card"><div class="compare-title" id="fallCompareTitle"></div><canvas id="fallCompareBar" height="90"></canvas></div>
+    </div>
     <div class="kpi-row kpi-row-4" id="fallKpi"></div>
     <div class="chart-grid-2">
-      <div class="chart-card">
-        <div class="chart-title">① 낙상 유형</div>
-        <canvas id="fallTypeChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">② 낙상 장소</div>
-        <canvas id="fallPlaceChart" height="200"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">① 낙상 유형</div><canvas id="fallTypeChart" height="200"></canvas></div>
+      <div class="chart-card"><div class="chart-title">② 낙상 장소</div><canvas id="fallPlaceChart" height="200"></canvas></div>
     </div>
     <div class="chart-grid-2">
-      <div class="chart-card">
-        <div class="chart-title">③ 낙상 위험유형</div>
-        <canvas id="fallRiskChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">④ 연령별 분포</div>
-        <canvas id="fallAgeChart" height="200"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">③ 낙상 위험유형</div><canvas id="fallRiskChart" height="200"></canvas></div>
+      <div class="chart-card"><div class="chart-title">④ 연령별 분포</div><canvas id="fallAgeChart" height="200"></canvas></div>
     </div>
     <div class="chart-grid-3">
-      <div class="chart-card">
-        <div class="chart-title">⑤ 고위험군 여부</div>
-        <canvas id="fallHRChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">⑥ 시간대별</div>
-        <canvas id="fallTimeChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">⑦ 낙상 후 손상</div>
-        <canvas id="fallInjChart" height="180"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">⑤ 고위험군 여부</div><canvas id="fallHRChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⑥ 시간대별</div><canvas id="fallTimeChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⑦ 낙상 후 손상</div><canvas id="fallInjChart" height="180"></canvas></div>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">낙상 위해사고 결과 분석</div>
     <div class="analysis-box" id="fallAnalysis" contenteditable="true" spellcheck="false"></div>
@@ -249,27 +272,30 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   </div>
 
   <div class="section">
-    <div class="section-header"><span class="section-badge med">투약/기타</span> 위해사고 분석 및 관리</div>
+    <div class="section-header"><span class="section-badge med">투약/기타</span> 위해사고 분석 및 관리<button class="btn-compare no-print" onclick="toggleCompare('med')">📊 비교 추가</button></div>
+    <div class="compare-panel" id="medComparePanel">
+      <div class="compare-panel-title">투약/기타 비교 조건 설정</div>
+      <div class="compare-checks">
+        <label class="compare-check-item"><input type="checkbox" id="medChkPrev"> 전분기 비교</label>
+        <label class="compare-check-item"><input type="checkbox" id="medChkYear"> 전년도 동분기 비교</label>
+      </div>
+      <div class="compare-inputs">
+        <div class="compare-input-field"><label>전분기 투약/기타 건수</label><input type="number" id="medPrev" placeholder="예) 28"></div>
+        <div class="compare-input-field"><label>전년도 동분기 투약/기타 건수</label><input type="number" id="medYear" placeholder="예) 22"></div>
+      </div>
+      <button class="btn-compare-apply" onclick="applyCompare('med')">적용</button>
+    </div>
+    <div id="medCompareSectionInner" style="display:none;">
+      <div class="compare-card"><div class="compare-title" id="medCompareTitle"></div><canvas id="medCompareBar" height="90"></canvas></div>
+    </div>
     <div class="kpi-row kpi-row-4" id="medKpi"></div>
     <div class="chart-grid-2">
-      <div class="chart-card">
-        <div class="chart-title">투약 위험유형</div>
-        <canvas id="medTypeChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">기타 위험유형</div>
-        <canvas id="etcTypeChart" height="200"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">투약 위험유형</div><canvas id="medTypeChart" height="200"></canvas></div>
+      <div class="chart-card"><div class="chart-title">기타 위험유형</div><canvas id="etcTypeChart" height="200"></canvas></div>
     </div>
     <div class="chart-grid-2">
-      <div class="chart-card">
-        <div class="chart-title">투약 위험요인</div>
-        <canvas id="medRiskChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">기타 위험요인</div>
-        <canvas id="etcRiskChart" height="200"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">투약 위험요인</div><canvas id="medRiskChart" height="200"></canvas></div>
+      <div class="chart-card"><div class="chart-title">기타 위험요인</div><canvas id="etcRiskChart" height="200"></canvas></div>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">투약/기타 위해사고 결과 분석</div>
     <div class="analysis-box" id="medAnalysis" contenteditable="true" spellcheck="false"></div>
@@ -290,55 +316,40 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   </div>
 
   <div class="section section-page-break">
-    <div class="section-header"><span class="section-badge wound">원내 욕창</span> 발생 분석 및 관리</div>
+    <div class="section-header"><span class="section-badge wound">원내 욕창</span> 발생 분석 및 관리<button class="btn-compare no-print" onclick="toggleCompare('wound')">📊 비교 추가</button></div>
+    <div class="compare-panel" id="woundComparePanel">
+      <div class="compare-panel-title">원내 욕창 비교 조건 설정</div>
+      <div class="compare-checks">
+        <label class="compare-check-item"><input type="checkbox" id="woundChkPrev"> 전분기 비교</label>
+        <label class="compare-check-item"><input type="checkbox" id="woundChkYear"> 전년도 동분기 비교</label>
+      </div>
+      <div class="compare-inputs">
+        <div class="compare-input-field"><label>전분기 욕창 건수</label><input type="number" id="woundPrev" placeholder="예) 42"></div>
+        <div class="compare-input-field"><label>전년도 동분기 욕창 건수</label><input type="number" id="woundYear" placeholder="예) 38"></div>
+      </div>
+      <button class="btn-compare-apply" onclick="applyCompare('wound')">적용</button>
+    </div>
+    <div id="woundCompareSectionInner" style="display:none;">
+      <div class="compare-card"><div class="compare-title" id="woundCompareTitle"></div><canvas id="woundCompareBar" height="90"></canvas></div>
+    </div>
     <div class="kpi-row kpi-row-4" id="woundKpi"></div>
     <div class="chart-grid-2">
-      <div class="chart-card">
-        <div class="chart-title">① 욕창 단계</div>
-        <canvas id="woundStageChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">② 욕창 부위</div>
-        <canvas id="woundSiteChart" height="200"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">① 욕창 단계</div><canvas id="woundStageChart" height="200"></canvas></div>
+      <div class="chart-card"><div class="chart-title">② 욕창 부위</div><canvas id="woundSiteChart" height="200"></canvas></div>
     </div>
     <div class="chart-grid-3">
-      <div class="chart-card">
-        <div class="chart-title">③ 연령별 분포</div>
-        <canvas id="woundAgeChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">④ 욕창 위험평가</div>
-        <canvas id="woundRiskChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">⑤ 진료과</div>
-        <canvas id="woundDeptChart" height="180"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">③ 연령별 분포</div><canvas id="woundAgeChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">④ 욕창 위험평가</div><canvas id="woundRiskChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⑤ 진료과</div><canvas id="woundDeptChart" height="180"></canvas></div>
     </div>
     <div class="chart-grid-3">
-      <div class="chart-card">
-        <div class="chart-title">⑥ 돌봄 체계</div>
-        <canvas id="woundCareChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">⑦ 의식상태</div>
-        <canvas id="woundConsChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">⑧ 식이상태</div>
-        <canvas id="woundDietChart" height="180"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">⑥ 돌봄 체계</div><canvas id="woundCareChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⑦ 의식상태</div><canvas id="woundConsChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⑧ 식이상태</div><canvas id="woundDietChart" height="180"></canvas></div>
     </div>
     <div class="chart-grid-2">
-      <div class="chart-card">
-        <div class="chart-title">⑨ 주요 위험요인</div>
-        <canvas id="woundFactorChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">⑩ 신체활동</div>
-        <canvas id="woundActChart" height="180"></canvas>
-      </div>
+      <div class="chart-card"><div class="chart-title">⑨ 주요 위험요인</div><canvas id="woundFactorChart" height="180"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⑩ 신체활동</div><canvas id="woundActChart" height="180"></canvas></div>
     </div>
     <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">원내 욕창 발생 결과 분석</div>
     <div class="analysis-box" id="woundAnalysis" contenteditable="true" spellcheck="false"></div>
@@ -376,41 +387,58 @@ let rawRows=[],woundRows=[],cInsts={};
 
 function dc(id){if(cInsts[id]){cInsts[id].destroy();delete cInsts[id];}}
 
-// ── 1. 그래프 위 건수+% 플러그인 ──
+// ── 막대: 건수 중간, % 위로 분리 ──
 const dataLabelPlugin={
   id:'dataLabel',
   afterDatasetsDraw(chart){
     const{ctx}=chart;
-    const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
     chart.data.datasets.forEach((ds,i)=>{
       const meta=chart.getDatasetMeta(i);
       if(meta.hidden||chart.config.type==='doughnut'||chart.config.type==='pie')return;
+      const dsTotal=ds.data.reduce((s,v)=>s+(v||0),0);
       meta.data.forEach((bar,j)=>{
         const v=ds.data[j];
         if(!v)return;
-        const pct=total>0?(v/total*100).toFixed(1):'0';
+        const p=dsTotal>0?(v/dsTotal*100).toFixed(1):'0';
+        const {x,y,base}=bar;
+        const mid=y+(base-y)*0.5;
         ctx.save();
-        ctx.fillStyle='#374151';
+        // 건수 — 막대 중간
+        ctx.fillStyle='#fff';
         ctx.font='bold 10px Apple SD Gothic Neo,맑은 고딕,sans-serif';
         ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        if((base-y)>16) ctx.fillText(`${v}건`,x,mid);
+        // % — 막대 위
+        ctx.fillStyle='#374151';
+        ctx.font='bold 10px Apple SD Gothic Neo,맑은 고딕,sans-serif';
         ctx.textBaseline='bottom';
-        ctx.fillText(`${v}건(${pct}%)`,bar.x,bar.y-2);
+        ctx.fillText(`${p}%`,x,y-2);
         ctx.restore();
       });
     });
   }
 };
 
-// 도넛/파이 중앙 라벨 + 툴팁에 건수+% 표시
-function makePieOptions(labels,data){
-  const total=data.reduce((s,v)=>s+v,0);
+// ── 도넛/파이: 레이블에 건수+% ──
+function makePieOpts(labels,data){
+  const total=data.reduce((s,v)=>s+(v||0),0);
   return {
     responsive:true,maintainAspectRatio:true,
     plugins:{
-      legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}},
+      legend:{display:true,position:'bottom',
+        labels:{font:{size:10},boxWidth:12,padding:8,
+          generateLabels(chart){
+            return chart.data.labels.map((l,i)=>{
+              const v=chart.data.datasets[0].data[i]||0;
+              const p=total>0?(v/total*100).toFixed(1):'0';
+              return{text:`${l}: ${v}건(${p}%)`,fillStyle:PALETTE[i],strokeStyle:'#fff',lineWidth:2,index:i};
+            });
+          }
+        }
+      },
       tooltip:{callbacks:{label:ctx=>{
-        const v=ctx.raw;
-        const p=total>0?(v/total*100).toFixed(1):'0';
+        const v=ctx.raw;const p=total>0?(v/total*100).toFixed(1):'0';
         return ` ${ctx.label}: ${v}건 (${p}%)`;
       }}}
     }
@@ -419,54 +447,38 @@ function makePieOptions(labels,data){
 
 function mc(id,type,labels,data,opts={}){
   dc(id);
-  const el=document.getElementById(id);
-  if(!el)return;
+  const el=document.getElementById(id);if(!el)return;
   const isDoughnut=type==='doughnut'||type==='pie';
-  const total=Array.isArray(data[0])?data[0].reduce((s,v)=>s+v,0):data.reduce((s,v)=>s+(v||0),0);
-
   if(isDoughnut){
-    cInsts[id]=new Chart(el,{
-      type,
-      data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},
-      options:makePieOptions(labels,data)
-    });
+    cInsts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},options:makePieOpts(labels,data)});
   } else {
-    const barTotal=data.reduce((s,v)=>s+(v||0),0);
+    const dsTotal=data.reduce((s,v)=>s+(v||0),0);
     cInsts[id]=new Chart(el,{
       type,
       data:{labels,datasets:[{data,backgroundColor:PALETTE[opts.ci||0],borderRadius:4,...(opts.ds||{})}]},
       plugins:[dataLabelPlugin],
       options:{
         responsive:true,maintainAspectRatio:true,
+        layout:{padding:{top:20}},
         plugins:{
           legend:{display:false},
-          tooltip:{callbacks:{label:ctx=>{
-            const v=ctx.raw;
-            const p=barTotal>0?(v/barTotal*100).toFixed(1):'0';
-            return ` ${ctx.label}: ${v}건 (${p}%)`;
-          }}}
+          tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;const p=dsTotal>0?(v/dsTotal*100).toFixed(1):'0';return ` ${ctx.label}: ${v}건 (${p}%)`;}}},
         },
-        scales:{
-          y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
-          x:{ticks:{font:{size:10}}}
-        },
+        scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},x:{ticks:{font:{size:10}}}},
         ...(opts.options||{})
       }
     });
   }
 }
 
-function handleDrop(e,type){e.preventDefault();e.currentTarget.classList.remove('drag-over');handleFile(e.dataTransfer.files[0],type);}
+function handleDrop(e,type){e.preventDefault();handleFile(e.dataTransfer.files[0],type);}
 function handleFile(file,type){
   if(!file)return;
   const r=new FileReader();
   r.onload=e=>{
     const doc=new DOMParser().parseFromString(e.target.result,'text/html');
     const rows=[];
-    doc.querySelectorAll('tr').forEach(tr=>{
-      const cells=[];tr.querySelectorAll('td,th').forEach(td=>cells.push(td.textContent.trim()));
-      if(cells.some(c=>c))rows.push(cells);
-    });
+    doc.querySelectorAll('tr').forEach(tr=>{const cells=[];tr.querySelectorAll('td,th').forEach(td=>cells.push(td.textContent.trim()));if(cells.some(c=>c))rows.push(cells);});
     const cleaned=rows.map(r=>/^\d+$/.test(r[0])?r.slice(1):r);
     if(type==='raw'){
       rawRows=cleaned;
@@ -478,10 +490,7 @@ function handleFile(file,type){
       const years=[...new Set(months.map(m=>m.split('-')[0]))];
       years.forEach(y=>[1,2,3,4].forEach(q=>{
         const qm=MONTHS_Q[q].map(m=>`${y}-${m}`);
-        if(qm.some(m=>months.includes(m))){
-          const o=document.createElement('option');
-          o.value=`${y}-${q}`;o.textContent=`${y}년 ${q}분기`;sel.appendChild(o);
-        }
+        if(qm.some(m=>months.includes(m))){const o=document.createElement('option');o.value=`${y}-${q}`;o.textContent=`${y}년 ${q}분기`;sel.appendChild(o);}
       }));
       if(sel.options.length>1){sel.selectedIndex=1;onQSelect();}
     } else {
@@ -500,12 +509,10 @@ function checkReady(){
   document.getElementById('fileStatus').textContent=ok?'✅ 두 파일 준비 완료!':rawRows.length>0?'욕창원자료를 업로드해주세요':'원자료를 먼저 업로드해주세요';
 }
 function onQSelect(){
-  const v=document.getElementById('selQuarter').value;
-  if(!v)return;
+  const v=document.getElementById('selQuarter').value;if(!v)return;
   const[y,q]=v.split('-');
   document.getElementById('metaPeriod').value=`${y}년 ${MONTHS_Q[q][0]}월 1일 ~ ${MONTHS_Q[q][2]}월 31일`;
 }
-
 function pct(n,t){return t>0?(n/t*100).toFixed(1)+'%':'0%';}
 function countBy(data,idx){const m={};data.forEach(r=>{const k=r[idx]||'기타';m[k]=(m[k]||0)+1;});return m;}
 function countMulti(data,idx){const m={};data.forEach(r=>{(r[idx]||'').split(/[,/]/).forEach(k=>{k=k.trim();if(k)m[k]=(m[k]||0)+1;});});return m;}
@@ -545,13 +552,12 @@ function generate(){
   document.getElementById('rptMeta').textContent=`작성: ${author} | QPS실`;
   document.getElementById('rptOverview').innerHTML=`보고기간: ${period}<br>자료출처: ${source}<br>총 보고건수: <strong>${totalAll}건</strong>`;
 
-  // KPI
   document.getElementById('kpiRow').innerHTML=kpiHtml([
     {cls:'total',label:'총 보고건수',value:totalAll,unit:'건'},
-    {cls:'fall',label:'낙상',value:fallData.length,unit:'건 ('+pct(fallData.length,totalAll)+')'},
-    {cls:'med',label:'투약',value:medData.length,unit:'건 ('+pct(medData.length,totalAll)+')'},
-    {cls:'etc',label:'기타',value:etcData.length,unit:'건 ('+pct(etcData.length,totalAll)+')'},
-    {cls:'wound',label:'원내욕창',value:wData.length,unit:'건 ('+pct(wData.length,totalAll)+')'},
+    {cls:'fall',label:'낙상',value:fallData.length,unit:`건 (${pct(fallData.length,totalAll)})`},
+    {cls:'med',label:'투약',value:medData.length,unit:`건 (${pct(medData.length,totalAll)})`},
+    {cls:'etc',label:'기타',value:etcData.length,unit:`건 (${pct(etcData.length,totalAll)})`},
+    {cls:'wound',label:'원내욕창',value:wData.length,unit:`건 (${pct(wData.length,totalAll)})`},
   ]);
 
   mc('overallPie','doughnut',['낙상','투약','기타','원내욕창'],[fallData.length,medData.length,etcData.length,wData.length]);
@@ -580,72 +586,61 @@ function generate(){
         legend:{position:'top',labels:{font:{size:10},boxWidth:12}},
         tooltip:{callbacks:{label:ctx=>{
           const v=ctx.raw;
-          const colTotal=filteredCats.map((_,i)=>[0,1,2,3].reduce((s,g)=>s+(gradeMap[filteredCats[i]]?.[g]||0),0));
-          const t=colTotal[ctx.dataIndex]||1;
-          return ` ${ctx.dataset.label}: ${v}건 (${(v/t*100).toFixed(1)}%)`;
+          const t=filteredCats.map((_,i)=>[0,1,2,3].reduce((s,g)=>s+(gradeMap[filteredCats[i]]?.[g]||0),0));
+          const total=t[ctx.dataIndex]||1;
+          return ` ${ctx.dataset.label}: ${v}건 (${(v/total*100).toFixed(1)}%)`;
         }}}
       }
     }
   });
 
-  // ── 2. 전분기/전년도 비교 차트 ──
+  // ── 등급별 표 ──
+  const gradeCols=['등급0','등급1','등급2','등급3+','합계'];
+  let tableHtml=`<thead><tr><th>유형</th>${gradeCols.map(g=>`<th>${g}</th>`).join('')}</tr></thead><tbody>`;
+  let totals={0:0,1:0,2:0,3:0,sum:0};
+  filteredCats.forEach(c=>{
+    const row=gradeMap[c];
+    const sum=[0,1,2,3].reduce((s,g)=>s+(row[g]||0),0);
+    [0,1,2,3].forEach(g=>totals[g]+=(row[g]||0));
+    totals.sum+=sum;
+    tableHtml+=`<tr>
+      <td>${c}</td>
+      <td class="g0">${row[0]||'-'}</td>
+      <td class="g1">${row[1]||'-'}</td>
+      <td class="g2">${row[2]||'-'}</td>
+      <td class="g3">${row[3]||'-'}</td>
+      <td><strong>${sum}</strong></td>
+    </tr>`;
+  });
+  tableHtml+=`<tr>
+    <td>합계</td>
+    <td class="g0"><strong>${totals[0]}</strong></td>
+    <td class="g1"><strong>${totals[1]}</strong></td>
+    <td class="g2"><strong>${totals[2]}</strong></td>
+    <td class="g3"><strong>${totals[3]}</strong></td>
+    <td><strong>${totals.sum}</strong></td>
+  </tr></tbody>`;
+  document.getElementById('gradeTable').innerHTML=tableHtml;
+
+  // 비교 차트
   if(prevTotal||prevYearTotal){
     document.getElementById('compareSection').style.display='block';
     dc('compareBar');
-    const compareLabels=['전년도 동분기','전분기','현재 분기'];
-    const compareData=[prevYearTotal||null,prevTotal||null,totalExW];
-    const compareColors=['rgba(148,163,184,.7)','rgba(26,95,168,.7)','rgba(180,83,9,.9)'];
     cInsts['compareBar']=new Chart(document.getElementById('compareBar'),{
       type:'bar',
-      data:{
-        labels:compareLabels,
-        datasets:[{
-          data:compareData,
-          backgroundColor:compareColors,
-          borderRadius:6,
-          barThickness:60
-        }]
-      },
-      plugins:[{
-        id:'compareLabelPlugin',
-        afterDatasetsDraw(chart){
-          const{ctx}=chart;
-          chart.data.datasets[0].data.forEach((v,i)=>{
-            if(!v)return;
-            const bar=chart.getDatasetMeta(0).data[i];
-            ctx.save();
-            ctx.fillStyle='#1a3a5c';
-            ctx.font='bold 12px Apple SD Gothic Neo,sans-serif';
-            ctx.textAlign='center';
-            ctx.textBaseline='bottom';
-            ctx.fillText(`${v}건`,bar.x,bar.y-4);
-            ctx.restore();
-          });
-        }
-      }],
-      options:{
-        responsive:true,maintainAspectRatio:true,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}건`}}},
-        scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:12,weight:'bold'}}}}
-      }
+      data:{labels:['전년도 동분기','전분기','현재 분기'],datasets:[{data:[prevYearTotal||null,prevTotal||null,totalExW],backgroundColor:['rgba(148,163,184,.7)','rgba(26,95,168,.7)','rgba(180,83,9,.9)'],borderRadius:6,barThickness:60}]},
+      plugins:[{id:'cl',afterDatasetsDraw(chart){const{ctx}=chart;chart.data.datasets[0].data.forEach((v,i)=>{if(!v)return;const bar=chart.getDatasetMeta(0).data[i];ctx.save();ctx.fillStyle='#1a3a5c';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(`${v}건`,bar.x,bar.y-4);ctx.restore();});}}],
+      options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}건`}}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:12,weight:'bold'}}}}}
     });
   } else {
     document.getElementById('compareSection').style.display='none';
   }
 
-  // ── 3. 종합 분석 문장 (자연스럽게) ──
+  // 종합 분석
   let compareSentence='';
-  if(prevTotal&&prevYearTotal){
-    const diffPrev=totalExW-prevTotal;
-    const diffYear=totalExW-prevYearTotal;
-    compareSentence=`전분기(${prevTotal}건) 대비 <strong>${Math.abs(diffPrev)}건 ${diffPrev<0?'감소 ▼':'증가 ▲'}</strong>하였으며, 전년도 동분기(${prevYearTotal}건) 대비 <strong>${Math.abs(diffYear)}건 ${diffYear<0?'감소':'증가'}</strong>하였습니다.`;
-  } else if(prevTotal){
-    const diff=totalExW-prevTotal;
-    compareSentence=`전분기(${prevTotal}건) 대비 <strong>${Math.abs(diff)}건 ${diff<0?'감소 ▼':'증가 ▲'}</strong>하였습니다.`;
-  } else if(prevYearTotal){
-    const diff=totalExW-prevYearTotal;
-    compareSentence=`전년도 동분기(${prevYearTotal}건) 대비 <strong>${Math.abs(diff)}건 ${diff<0?'감소':'증가'}</strong>하였습니다.`;
-  }
+  if(prevTotal&&prevYearTotal){const d1=totalExW-prevTotal,d2=totalExW-prevYearTotal;compareSentence=`전분기(${prevTotal}건) 대비 <strong>${Math.abs(d1)}건 ${d1<0?'감소 ▼':'증가 ▲'}</strong>하였으며, 전년도 동분기(${prevYearTotal}건) 대비 <strong>${Math.abs(d2)}건 ${d2<0?'감소':'증가'}</strong>하였습니다.`;}
+  else if(prevTotal){const d=totalExW-prevTotal;compareSentence=`전분기(${prevTotal}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소 ▼':'증가 ▲'}</strong>하였습니다.`;}
+  else if(prevYearTotal){const d=totalExW-prevYearTotal;compareSentence=`전년도 동분기(${prevYearTotal}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소':'증가'}</strong>하였습니다.`;}
 
   document.getElementById('overallAnalysis').innerHTML=`<ul>
     <li>${qLabel} 환자안전사고 보고는 총 <strong>${totalAll}건</strong>이었습니다.</li>
@@ -653,26 +648,22 @@ function generate(){
     <li>욕창 제외 사고(낙상+투약+기타) 총 <strong>${totalExW}건</strong>이 보고되었습니다.${compareSentence?' '+compareSentence:''}</li>
   </ul>`;
 
-  // ── 낙상 ──
+  // 낙상
   const fT=fallHarm.length;
-  const fGrade={1:0,2:0,3:0,4:0,5:0};fallHarm.forEach(r=>fGrade[parseInt(r[7])||1]++);
+  const fGrade={1:0,2:0,3:0};fallHarm.forEach(r=>fGrade[Math.min(parseInt(r[7])||1,3)]++);
   const fHR={Y:0,N:0};fallHarm.forEach(r=>fHR[r[15]]=(fHR[r[15]]||0)+1);
   document.getElementById('fallKpi').innerHTML=kpiHtml([
     {cls:'fall',label:'낙상 위해사고',value:fT,unit:'건'},
-    {cls:'light',label:'고위험군 비율',value:pct(fHR.Y||0,fT),unit:''},
-    {cls:'light',label:'70세 이상',value:pct(fallHarm.filter(r=>parseInt(r[4])>=70).length,fT),unit:''},
-    {cls:'light',label:'가장 많은 등급',value:'등급'+(Object.entries(fGrade).sort((a,b)=>b[1]-a[1])[0]?.[0]||1),unit:''},
+    {cls:'light',label:'고위험군 비율',value:pct(fHR.Y||0,fT)},
+    {cls:'light',label:'70세 이상',value:pct(fallHarm.filter(r=>parseInt(r[4])>=70).length,fT)},
+    {cls:'light',label:'가장 많은 등급',value:'등급'+(Object.entries(fGrade).sort((a,b)=>b[1]-a[1])[0]?.[0]||1)},
   ]);
-
-  const fType=countBy(fallHarm,14);
-  const fPlace=countBy(fallHarm,10);
-  const fRisk=countBy(fallHarm,8);
+  const fType=countBy(fallHarm,14),fPlace=countBy(fallHarm,10),fRisk=countBy(fallHarm,8);
   const fAge={};fallHarm.forEach(r=>{const g=ageGroup(r[4]);fAge[g]=(fAge[g]||0)+1;});
   const ageOrder=['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'];
   const fTime={'7:31~15:30':0,'15:31~22:30':0,'22:31~07:30':0};
   fallHarm.forEach(r=>fTime[timeSlot(r[2])]=(fTime[timeSlot(r[2])]||0)+1);
   const fInj=countMulti(fallHarm,11);
-
   mc('fallTypeChart','doughnut',sortedE(fType).map(([k])=>k),sortedE(fType).map(([,v])=>v));
   mc('fallPlaceChart','bar',sortedE(fPlace).map(([k])=>k),sortedE(fPlace).map(([,v])=>v),{ci:0});
   mc('fallRiskChart','bar',sortedE(fRisk).map(([k])=>k),sortedE(fRisk).map(([,v])=>v),{ci:1});
@@ -680,27 +671,24 @@ function generate(){
   mc('fallHRChart','doughnut',['고위험군(Y)','일반(N)'],[fHR.Y||0,fHR.N||0]);
   mc('fallTimeChart','bar',Object.keys(fTime),Object.values(fTime),{ci:3});
   mc('fallInjChart','doughnut',sortedE(fInj).map(([k])=>k),sortedE(fInj).map(([,v])=>v));
-
-  const topPlace=sortedE(fPlace)[0]||['병실',0];
-  const topRisk=sortedE(fRisk)[0]||['행동특성낙상',0];
+  const topPlace=sortedE(fPlace)[0]||['병실',0],topRisk=sortedE(fRisk)[0]||['행동특성낙상',0];
   document.getElementById('fallAnalysis').innerHTML=`<ul>
     <li>${qLabel} 낙상 위해사고는 총 <strong>${fT}건</strong> 발생하였습니다.</li>
     <li>주요 발생 장소: <strong>${topPlace[0]}(${pct(topPlace[1],fT)})</strong>, 주요 원인: <strong>${topRisk[0]}(${pct(topRisk[1],fT)})</strong>.</li>
     <li>낙상 고위험군 환자에서 <strong>${pct(fHR.Y||0,fT)}</strong> 발생, 70세 이상이 <strong>${pct(fallHarm.filter(r=>parseInt(r[4])>=70).length,fT)}</strong>를 차지하였습니다.</li>
   </ul>`;
 
-  // ── 투약/기타 ──
+  // 투약/기타
   const mT=medHarm.length,eT=etcHarm.length;
   const mGrade={1:0,2:0,3:0};medHarm.forEach(r=>mGrade[Math.min(parseInt(r[7])||1,3)]++);
   const eGrade={1:0,2:0,3:0};etcHarm.forEach(r=>eGrade[Math.min(parseInt(r[7])||1,3)]++);
   document.getElementById('medKpi').innerHTML=kpiHtml([
     {cls:'med',label:'투약 위해사고',value:mT,unit:'건'},
     {cls:'etc',label:'기타 위해사고',value:eT,unit:'건'},
-    {cls:'light',label:'투약 등급1 비율',value:pct(mGrade[1],mT),unit:''},
-    {cls:'light',label:'기타 등급1 비율',value:pct(eGrade[1],eT),unit:''},
+    {cls:'light',label:'투약 등급1 비율',value:pct(mGrade[1],mT)},
+    {cls:'light',label:'기타 등급1 비율',value:pct(eGrade[1],eT)},
   ]);
-  const mType=countBy(medHarm,8),mRisk=countBy(medHarm,9);
-  const eType=countBy(etcHarm,8),eRisk=countBy(etcHarm,9);
+  const mType=countBy(medHarm,8),mRisk=countBy(medHarm,9),eType=countBy(etcHarm,8),eRisk=countBy(etcHarm,9);
   mc('medTypeChart','doughnut',sortedE(mType).map(([k])=>k),sortedE(mType).map(([,v])=>v));
   mc('etcTypeChart','doughnut',sortedE(eType).map(([k])=>k),sortedE(eType).map(([,v])=>v));
   mc('medRiskChart','bar',sortedE(mRisk).map(([k])=>k),sortedE(mRisk).map(([,v])=>v),{ci:4});
@@ -711,65 +699,48 @@ function generate(){
     <li>기타 사고 가장 많은 유형: <strong>${topEtc[0]}(${pct(topEtc[1],eT)})</strong>.</li>
   </ul>`;
 
-  // ── 근접오류 ──
+  // 근접오류
   document.getElementById('nearKpi').innerHTML=kpiHtml([
     {cls:'near',label:'근접오류 보고',value:nearMiss,unit:'건'},
     {cls:'light',label:'전분기',value:prevNearMiss||'-',unit:'건'},
     {cls:'light',label:'전년도 동분기',value:prevYrNearMiss||'-',unit:'건'},
   ]);
-
   if(prevNearMiss||prevYrNearMiss){
     document.getElementById('nearCompareSection').style.display='block';
     dc('nearCompareBar');
     cInsts['nearCompareBar']=new Chart(document.getElementById('nearCompareBar'),{
       type:'bar',
-      data:{
-        labels:['전년도 동분기','전분기','현재 분기'],
-        datasets:[{data:[prevYrNearMiss||null,prevNearMiss||null,nearMiss],backgroundColor:['rgba(148,163,184,.7)','rgba(55,65,81,.7)','rgba(55,65,81,.9)'],borderRadius:6,barThickness:50}]
-      },
-      plugins:[{id:'nlp',afterDatasetsDraw(chart){const{ctx}=chart;chart.data.datasets[0].data.forEach((v,i)=>{if(!v)return;const bar=chart.getDatasetMeta(0).data[i];ctx.save();ctx.fillStyle='#1a3a5c';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(`${v}건`,bar.x,bar.y-4);ctx.restore();});}}],
+      data:{labels:['전년도 동분기','전분기','현재 분기'],datasets:[{data:[prevYrNearMiss||null,prevNearMiss||null,nearMiss],backgroundColor:['rgba(148,163,184,.7)','rgba(55,65,81,.7)','rgba(55,65,81,.9)'],borderRadius:6,barThickness:50}]},
+      plugins:[{id:'nl',afterDatasetsDraw(chart){const{ctx}=chart;chart.data.datasets[0].data.forEach((v,i)=>{if(!v)return;const bar=chart.getDatasetMeta(0).data[i];ctx.save();ctx.fillStyle='#1a3a5c';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(`${v}건`,bar.x,bar.y-4);ctx.restore();});}}],
       options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:12,weight:'bold'}}}}}
     });
   }
-
   let nearCompare='';
-  if(prevNearMiss&&prevYrNearMiss){
-    const d1=nearMiss-prevNearMiss,d2=nearMiss-prevYrNearMiss;
-    nearCompare=`전분기(${prevNearMiss}건) 대비 <strong>${Math.abs(d1)}건 ${d1<0?'감소 ▼':'증가 ▲'}</strong>, 전년도 동분기(${prevYrNearMiss}건) 대비 <strong>${Math.abs(d2)}건 ${d2<0?'감소':'증가'}</strong>하였습니다.`;
-  } else if(prevNearMiss){
-    const d=nearMiss-prevNearMiss;
-    nearCompare=`전분기(${prevNearMiss}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소 ▼':'증가 ▲'}</strong>하였습니다.`;
-  } else if(prevYrNearMiss){
-    const d=nearMiss-prevYrNearMiss;
-    nearCompare=`전년도 동분기(${prevYrNearMiss}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소':'증가'}</strong>하였습니다.`;
-  }
+  if(prevNearMiss&&prevYrNearMiss){const d1=nearMiss-prevNearMiss,d2=nearMiss-prevYrNearMiss;nearCompare=`전분기(${prevNearMiss}건) 대비 <strong>${Math.abs(d1)}건 ${d1<0?'감소 ▼':'증가 ▲'}</strong>, 전년도 동분기(${prevYrNearMiss}건) 대비 <strong>${Math.abs(d2)}건 ${d2<0?'감소':'증가'}</strong>하였습니다.`;}
+  else if(prevNearMiss){const d=nearMiss-prevNearMiss;nearCompare=`전분기(${prevNearMiss}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소 ▼':'증가 ▲'}</strong>하였습니다.`;}
+  else if(prevYrNearMiss){const d=nearMiss-prevYrNearMiss;nearCompare=`전년도 동분기(${prevYrNearMiss}건) 대비 <strong>${Math.abs(d)}건 ${d<0?'감소':'증가'}</strong>하였습니다.`;}
   document.getElementById('nearAnalysis').innerHTML=`<ul>
     <li>${qLabel} 근접오류 보고는 총 <strong>${nearMiss}건</strong>이 접수되었습니다.</li>
     ${nearCompare?`<li>${nearCompare}</li>`:''}
   </ul>`;
 
-  // ── 욕창 ──
+  // 욕창
   const wT=wData.length;
-  const wStage=countBy(wData,8);
-  const wSite=countMulti(wData,9);
+  const wStage=countBy(wData,8),wSite=countMulti(wData,9);
   const wAge={};wData.forEach(r=>{const g=ageGroup(r[3]);wAge[g]=(wAge[g]||0)+1;});
-  const wRisk=countBy(wData,13);
-  const wDept=countBy(wData,5);
-  const wCare=countBy(wData,7);
-  const wCons=countBy(wData,10);
-  const wDiet=countBy(wData,12);
+  const wRisk=countBy(wData,13),wDept=countBy(wData,5),wCare=countBy(wData,7),wCons=countBy(wData,10),wDiet=countBy(wData,12);
   const wFactor={...wCons};wData.forEach(r=>{const k=r[11]||'기타';wFactor[k]=(wFactor[k]||0)+1;});
-  const topStage=sortedE(wStage)[0]||['미분류',0];
-  const topSite=sortedE(wSite)[0]||['꼬리뼈',0];
+  const topStage=sortedE(wStage)[0]||['미분류',0],topSite=sortedE(wSite)[0]||['꼬리뼈',0];
   document.getElementById('woundKpi').innerHTML=kpiHtml([
     {cls:'wound',label:'원내욕창 발생',value:wT,unit:'건'},
-    {cls:'light',label:'주요 단계',value:topStage[0],unit:''},
-    {cls:'light',label:'주요 부위',value:topSite[0],unit:''},
-    {cls:'light',label:'70세 이상',value:pct(wData.filter(r=>parseInt(r[3])>=70).length,wT),unit:''},
+    {cls:'light',label:'주요 단계',value:topStage[0]},
+    {cls:'light',label:'주요 부위',value:topSite[0]},
+    {cls:'light',label:'70세 이상',value:pct(wData.filter(r=>parseInt(r[3])>=70).length,wT)},
   ]);
   mc('woundStageChart','doughnut',sortedE(wStage).map(([k])=>k),sortedE(wStage).map(([,v])=>v));
   mc('woundSiteChart','bar',sortedE(wSite).map(([k])=>k),sortedE(wSite).map(([,v])=>v),{ci:3});
-  mc('woundAgeChart','bar',['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'].filter(k=>wAge[k]),['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'].filter(k=>wAge[k]).map(k=>wAge[k]),{ci:2});
+  const ao=['7세미만','7~19세','20대','30대','40대','50대','60대','70세이상'];
+  mc('woundAgeChart','bar',ao.filter(k=>wAge[k]),ao.filter(k=>wAge[k]).map(k=>wAge[k]),{ci:2});
   mc('woundRiskChart','doughnut',sortedE(wRisk).map(([k])=>k),sortedE(wRisk).map(([,v])=>v));
   mc('woundDeptChart','bar',sortedE(wDept).map(([k])=>k),sortedE(wDept).map(([,v])=>v),{ci:1});
   mc('woundCareChart','doughnut',sortedE(wCare).map(([k])=>k),sortedE(wCare).map(([,v])=>v));
@@ -786,33 +757,33 @@ function generate(){
 
   document.getElementById('inputWrap').style.display='none';
   document.getElementById('reportBody').classList.add('show');
+  // 섹션별 현재값 저장 (비교용)
+  sectionCurrentVal.fall=fT;
+  sectionCurrentVal.med=mT+eT;
+  sectionCurrentVal.wound=wT;
   startAutoSave();
 }
 
 function addPhoto(num){
-  const inp=document.createElement('input');
-  inp.type='file';inp.accept='image/*';inp.multiple=true;
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
   inp.onchange=e=>{
     const grid=document.getElementById(`attach${num}Grid`);
     [...e.target.files].forEach(f=>{
-      const r=new FileReader();
-      r.onload=ev=>{
+      const r=new FileReader();r.onload=ev=>{
         const item=document.createElement('div');item.className='attach-item';
         const img=document.createElement('img');img.src=ev.target.result;
         const del=document.createElement('button');del.className='attach-del no-print';del.textContent='✕';del.onclick=()=>item.remove();
         item.appendChild(img);item.appendChild(del);grid.appendChild(item);
-      };
-      r.readAsDataURL(f);
+      };r.readAsDataURL(f);
     });
-  };
-  inp.click();
+  };inp.click();
 }
 
 const DRAFT_KEY='safety_report_draft';
 let autoSaveTimer=null;
 function getEditableIds(){return['overallAnalysis','fallAnalysis','medAnalysis','nearAnalysis','woundAnalysis'];}
 function saveDraft(){
-  const data={savedAt:new Date().toLocaleString('ko-KR'),title:document.getElementById('rptTitle')?.textContent||'',analyses:{}};
+  const data={savedAt:new Date().toLocaleString('ko-KR'),analyses:{}};
   getEditableIds().forEach(id=>{const el=document.getElementById(id);if(el)data.analyses[id]=el.innerHTML;});
   try{localStorage.setItem(DRAFT_KEY,JSON.stringify(data));document.getElementById('autoSaveStatus').textContent=`💾 저장됨 ${data.savedAt}`;setTimeout(()=>document.getElementById('autoSaveStatus').textContent='',3000);}catch(e){}
 }
@@ -829,22 +800,92 @@ function startAutoSave(){
 }
 window.addEventListener('load',checkDraft);
 
+// ── PDF 인쇄: 캔버스 → 이미지 변환 (딜레이 충분히) ──
 function printReport(){
-  const ids=Object.keys(cInsts);
   const reps=[];
-  ids.forEach(id=>{
-    const canvas=document.getElementById(id);
-    if(!canvas||canvas.width===0)return;
-    const img=document.createElement('img');
-    img.src=canvas.toDataURL('image/png',1);
-    img.className='pre-print-img';
-    img.style.cssText='display:none;width:100%;height:auto;';
-    canvas.parentNode.insertBefore(img,canvas);
-    canvas.style.display='none';
-    reps.push({canvas,img});
+  // 모든 캔버스를 이미지로 변환
+  document.querySelectorAll('canvas').forEach(canvas=>{
+    if(!canvas.id||canvas.width===0||canvas.height===0)return;
+    try{
+      const img=document.createElement('img');
+      img.src=canvas.toDataURL('image/png',1.0);
+      img.className='pre-print-img';
+      img.style.cssText='display:none;width:100%;height:auto;max-height:220px;object-fit:contain;';
+      canvas.parentNode.insertBefore(img,canvas.nextSibling);
+      canvas.style.display='none';
+      reps.push({canvas,img});
+    }catch(e){console.warn('캔버스 변환 실패:',canvas.id,e);}
   });
-  window.print();
-  setTimeout(()=>reps.forEach(({canvas,img})=>{img.remove();canvas.style.display='';}),1000);
+  // 렌더링 완료 후 인쇄
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{
+      reps.forEach(({canvas,img})=>{
+        img.remove();
+        canvas.style.display='';
+      });
+    },1500);
+  },300);
+}
+
+// ── 섹션별 비교 추가 ──
+// currentVal: 현재 분기 값 (generate()에서 저장)
+const sectionCurrentVal={fall:0,med:0,wound:0};
+
+function toggleCompare(type){
+  const panel=document.getElementById(`${type}ComparePanel`);
+  panel.classList.toggle('open');
+}
+
+function applyCompare(type){
+  const chkPrev=document.getElementById(`${type}ChkPrev`).checked;
+  const chkYear=document.getElementById(`${type}ChkYear`).checked;
+  const prevVal=parseInt(document.getElementById(`${type}Prev`).value)||0;
+  const yearVal=parseInt(document.getElementById(`${type}Year`).value)||0;
+  const current=sectionCurrentVal[type];
+
+  if(!chkPrev&&!chkYear){
+    document.getElementById(`${type}CompareSectionInner`).style.display='none';
+    return;
+  }
+
+  const labels=[],data=[],colors=[];
+  if(chkYear&&yearVal){labels.push('전년도 동분기');data.push(yearVal);colors.push('rgba(148,163,184,.8)');}
+  if(chkPrev&&prevVal){labels.push('전분기');data.push(prevVal);colors.push('rgba(26,95,168,.8)');}
+  labels.push('현재 분기');data.push(current);colors.push('rgba(180,83,9,.9)');
+
+  const typeNames={fall:'낙상',med:'투약/기타',wound:'원내 욕창'};
+  const parts=[];
+  if(chkPrev&&prevVal){const d=current-prevVal;parts.push(`전분기 대비 ${Math.abs(d)}건 ${d<0?'감소 ▼':'증가 ▲'}`);}
+  if(chkYear&&yearVal){const d=current-yearVal;parts.push(`전년도 동분기 대비 ${Math.abs(d)}건 ${d<0?'감소':'증가'}`);}
+  document.getElementById(`${type}CompareTitle`).textContent=`📊 ${typeNames[type]} 비교 — ${parts.join(' / ')}`;
+
+  dc(`${type}CompareBar`);
+  cInsts[`${type}CompareBar`]=new Chart(document.getElementById(`${type}CompareBar`),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:6,barThickness:55}]},
+    plugins:[{id:`${type}cl`,afterDatasetsDraw(chart){
+      const{ctx}=chart;
+      chart.data.datasets[0].data.forEach((v,i)=>{
+        if(!v)return;
+        const bar=chart.getDatasetMeta(0).data[i];
+        ctx.save();
+        ctx.fillStyle='#1a3a5c';ctx.font='bold 12px sans-serif';
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        ctx.fillText(`${v}건`,bar.x,bar.y-4);
+        ctx.restore();
+      });
+    }}],
+    options:{
+      responsive:true,
+      layout:{padding:{top:20}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw}건`}}},
+      scales:{y:{beginAtZero:true,ticks:{font:{size:11}}},x:{ticks:{font:{size:12,weight:'bold'}}}}
+    }
+  });
+
+  document.getElementById(`${type}CompareSectionInner`).style.display='block';
+  document.getElementById(`${type}ComparePanel`).classList.remove('open');
 }
 
 function resetReport(){
