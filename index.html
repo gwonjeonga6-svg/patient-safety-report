@@ -362,20 +362,26 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
     <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
   </div>
 
-  <div class="section section-page-break">
-    <div class="section-header"><span class="section-badge fall">[첨부1]</span> 낙상사고 개선 관리 이미지</div>
-    <div class="attach-grid" id="attach1Grid"></div>
-    <div class="attach-add-btn no-print" onclick="addPhoto(1)">📷 사진 추가 (여러 장 선택 가능)</div>
+  <div class="section section-page-break" id="attachSection1">
+    <div class="section-header"><span class="section-badge fall">[첨부1]</span> 낙상사고 개선 관리 이미지<button class="btn-compare no-print" onclick="toggleAttach(1)" id="attachBtn1">🙈 숨기기</button></div>
+    <div id="attachBody1">
+      <div class="attach-grid" id="attach1Grid"></div>
+      <div class="attach-add-btn no-print" onclick="addPhoto(1)">📷 사진 추가 (여러 장 선택 가능)</div>
+    </div>
   </div>
-  <div class="section">
-    <div class="section-header"><span class="section-badge med">[첨부2]</span> 투약/기타사고 개선 관리 이미지</div>
-    <div class="attach-grid" id="attach2Grid"></div>
-    <div class="attach-add-btn no-print" onclick="addPhoto(2)">📷 사진 추가 (여러 장 선택 가능)</div>
+  <div class="section" id="attachSection2">
+    <div class="section-header"><span class="section-badge med">[첨부2]</span> 투약/기타사고 개선 관리 이미지<button class="btn-compare no-print" onclick="toggleAttach(2)" id="attachBtn2">🙈 숨기기</button></div>
+    <div id="attachBody2">
+      <div class="attach-grid" id="attach2Grid"></div>
+      <div class="attach-add-btn no-print" onclick="addPhoto(2)">📷 사진 추가 (여러 장 선택 가능)</div>
+    </div>
   </div>
-  <div class="section">
-    <div class="section-header"><span class="section-badge wound">[첨부3]</span> 원내 욕창 발생 개선 관리 이미지</div>
-    <div class="attach-grid" id="attach3Grid"></div>
-    <div class="attach-add-btn no-print" onclick="addPhoto(3)">📷 사진 추가 (여러 장 선택 가능)</div>
+  <div class="section" id="attachSection3">
+    <div class="section-header"><span class="section-badge wound">[첨부3]</span> 원내 욕창 발생 개선 관리 이미지<button class="btn-compare no-print" onclick="toggleAttach(3)" id="attachBtn3">🙈 숨기기</button></div>
+    <div id="attachBody3">
+      <div class="attach-grid" id="attach3Grid"></div>
+      <div class="attach-add-btn no-print" onclick="addPhoto(3)">📷 사진 추가 (여러 장 선택 가능)</div>
+    </div>
   </div>
 
 </div>
@@ -431,8 +437,9 @@ const donutCenterPlugin={
   id:'donutCenter',
   afterDraw(chart){
     if(chart.config.type!=='doughnut'&&chart.config.type!=='pie')return;
-    const{ctx,chartArea:{top,bottom,left,right}}=chart;
+    const{ctx,chartArea}=chart;
     if(!chartArea)return;
+    const{top,bottom,left,right}=chartArea;
     const cx=(left+right)/2, cy=(top+bottom)/2;
     const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
     ctx.save();
@@ -914,6 +921,22 @@ function applyCompare(type){
 
   document.getElementById(`${type}CompareSectionInner`).style.display='block';
   document.getElementById(`${type}ComparePanel`).classList.remove('open');
+}
+
+function toggleAttach(num){
+  const body=document.getElementById(`attachBody${num}`);
+  const btn=document.getElementById(`attachBtn${num}`);
+  const section=document.getElementById(`attachSection${num}`);
+  const isHidden=body.style.display==='none';
+  if(isHidden){
+    body.style.display='';
+    btn.textContent='🙈 숨기기';
+    section.style.opacity='1';
+  } else {
+    body.style.display='none';
+    btn.textContent='👁 보이기';
+    section.style.opacity='0.5';
+  }
 }
 
 function resetReport(){
