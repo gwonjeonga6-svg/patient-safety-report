@@ -126,7 +126,7 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   .report-body{max-width:100%;padding:2px 8px;}
   body{background:#fff;font-size:11px;}
   .rpt-footer{display:none!important;}
-  .section{margin-bottom:8px;padding:8px 12px;page-break-inside:avoid;}
+  .section{margin-bottom:8px;padding:8px 12px;}
   .chart-card canvas{display:none!important;}
   .pre-print-img{display:block!important;width:100%;height:auto;max-height:180px;object-fit:contain;}
   .section-page-break{page-break-before:always;}
@@ -143,6 +143,11 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   .analysis-box{padding:8px 12px;font-size:11px;line-height:1.7;}
   .info-text{font-size:11px;line-height:1.7;}
   .compare-panel{display:none!important;}
+  /* 섹션별 1페이지 강제 */
+  .section-fall{page-break-before:always;}
+  .section-med{page-break-before:always;}
+  .section-wound{page-break-before:always;}
+  .section-attach{page-break-before:always;}
 }
 </style>
 </head>
@@ -245,7 +250,7 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
     <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
   </div>
 
-  <div class="section section-page-break">
+  <div class="section section-page-break section-fall">
     <div class="section-header"><span class="section-badge fall">낙상</span> 위해사고 발생 현황 및 관리<button class="btn-compare no-print" onclick="toggleCompare('fall')">📊 비교 추가</button></div>
     <div class="compare-panel" id="fallComparePanel">
       <div class="compare-panel-title">낙상 비교 조건 설정</div>
@@ -281,7 +286,7 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
     <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
   </div>
 
-  <div class="section">
+  <div class="section section-med">
     <div class="section-header"><span class="section-badge med">투약/기타</span> 위해사고 분석 및 관리<button class="btn-compare no-print" onclick="toggleCompare('med')">📊 비교 추가</button></div>
     <div class="compare-panel" id="medComparePanel">
       <div class="compare-panel-title">투약/기타 비교 조건 설정</div>
@@ -325,7 +330,7 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
     <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
   </div>
 
-  <div class="section section-page-break">
+  <div class="section section-page-break section-wound">
     <div class="section-header"><span class="section-badge wound">원내 욕창</span> 발생 분석 및 관리<button class="btn-compare no-print" onclick="toggleCompare('wound')">📊 비교 추가</button></div>
     <div class="compare-panel" id="woundComparePanel">
       <div class="compare-panel-title">원내 욕창 비교 조건 설정</div>
@@ -366,7 +371,7 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
     <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
   </div>
 
-  <div class="section section-page-break" id="attachSection1">
+  <div class="section section-page-break section-attach" id="attachSection1">
     <div class="section-header"><span class="section-badge fall">[첨부1]</span> 낙상사고 개선 관리 이미지<button class="btn-compare no-print" onclick="toggleAttach(1)" id="attachBtn1">🙈 숨기기</button></div>
     <div id="attachBody1">
       <div class="attach-grid" id="attach1Grid"></div>
@@ -436,7 +441,35 @@ const dataLabelPlugin={
   }
 };
 
-// ── 도넛/파이: 중앙에 총 건수, 범례에 건수+% ──
+// ── 도넛 조각별 레이블 플러그인 ──
+const donutLabelPlugin={
+  id:'donutLabel',
+  afterDatasetsDraw(chart){
+    if(chart.config.type!=='doughnut'&&chart.config.type!=='pie')return;
+    const{ctx,chartArea}=chart;
+    if(!chartArea)return;
+    const ds=chart.data.datasets[0];
+    const total=ds.data.reduce((s,v)=>s+(v||0),0);
+    const meta=chart.getDatasetMeta(0);
+    meta.data.forEach((arc,i)=>{
+      const v=ds.data[i];
+      if(!v||v/total<0.03)return; // 3% 미만은 생략
+      const angle=arc.startAngle+(arc.endAngle-arc.startAngle)/2;
+      const r=(arc.outerRadius+arc.innerRadius)/2;
+      const x=arc.x+Math.cos(angle)*r;
+      const y=arc.y+Math.sin(angle)*r;
+      ctx.save();
+      ctx.fillStyle='#fff';
+      ctx.font='bold 10px Apple SD Gothic Neo,맑은 고딕,sans-serif';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      const p=(v/total*100).toFixed(1);
+      ctx.fillText(`${v}건`,x,y-6);
+      ctx.fillText(`${p}%`,x,y+7);
+      ctx.restore();
+    });
+  }
+};
 const donutCenterPlugin={
   id:'donutCenter',
   afterDraw(chart){
@@ -489,7 +522,7 @@ function mc(id,type,labels,data,opts={}){
   const el=document.getElementById(id);if(!el)return;
   const isDoughnut=type==='doughnut'||type==='pie';
   if(isDoughnut){
-    cInsts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},plugins:[donutCenterPlugin],options:makePieOpts(labels,data)});
+    cInsts[id]=new Chart(el,{type,data:{labels,datasets:[{data,backgroundColor:PALETTE,borderColor:'#fff',borderWidth:2}]},plugins:[donutCenterPlugin,donutLabelPlugin],options:makePieOpts(labels,data)});
   } else {
     const dsTotal=data.reduce((s,v)=>s+(v||0),0);
     cInsts[id]=new Chart(el,{
