@@ -143,6 +143,8 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
   .analysis-box{padding:8px 12px;font-size:11px;line-height:1.7;}
   .info-text{font-size:11px;line-height:1.7;}
   .compare-panel{display:none!important;}
+  /* 욕창 2페이지 */
+  .wound-page2{page-break-before:always;}
   /* 섹션별 1페이지 강제 */
   .section-fall{page-break-before:always;}
   .section-med{page-break-before:always;}
@@ -362,13 +364,16 @@ body{font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif;font-size:13px
       <div class="chart-card"><div class="chart-title">⑦ 의식상태</div><canvas id="woundConsChart" height="180"></canvas></div>
       <div class="chart-card"><div class="chart-title">⑧ 식이상태</div><canvas id="woundDietChart" height="180"></canvas></div>
     </div>
-    <div class="chart-grid-2">
-      <div class="chart-card"><div class="chart-title">⑨ 주요 위험요인</div><canvas id="woundFactorChart" height="180"></canvas></div>
-      <div class="chart-card"><div class="chart-title">⑩ 신체활동</div><canvas id="woundActChart" height="180"></canvas></div>
+    <!-- 욕창 뒷부분: 새 페이지 -->
+    <div style="page-break-before:always;break-before:page;">
+      <div class="chart-grid-2">
+        <div class="chart-card"><div class="chart-title">⑨ 주요 위험요인</div><canvas id="woundFactorChart" height="180"></canvas></div>
+        <div class="chart-card"><div class="chart-title">⑩ 신체활동</div><canvas id="woundActChart" height="180"></canvas></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">원내 욕창 발생 결과 분석</div>
+      <div class="analysis-box" id="woundAnalysis" contenteditable="true" spellcheck="false"></div>
+      <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
     </div>
-    <div style="font-size:11px;font-weight:700;color:var(--gray-600);margin-bottom:6px;">원내 욕창 발생 결과 분석</div>
-    <div class="analysis-box" id="woundAnalysis" contenteditable="true" spellcheck="false"></div>
-    <div class="edit-hint no-print">✏️ 클릭하여 내용을 직접 수정할 수 있습니다</div>
   </div>
 
   <div class="section section-page-break section-attach" id="attachSection1">
